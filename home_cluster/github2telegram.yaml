@@ -28,19 +28,19 @@ data:
       telegram:
         token: "$BOT_TOKEN"
         type: telegram
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: github2telegram-pvc
-  namespace: tools
-spec:
-  storageClassName: nfs-client
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 50M
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: github2telegram-pvc
+#   namespace: tools
+# spec:
+#   storageClassName: nfs-client
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 50M
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -91,16 +91,21 @@ spec:
               memory: 256Mi
               cpu: "0.2"
           volumeMounts:
+            - name: github2telegram-pv
+              mountPath: /db
             - name: github2telegram-config-volume
               mountPath: /app/config_template.yaml
               subPath: config_template.yaml
-            - name: github2telegram-pv
-              mountPath: /db
       volumes:
         - name: github2telegram-config-volume
           configMap:
-            defaultMode: 420
             name: github2telegram-config
-        - name: github2telegram-pv
-          persistentVolumeClaim:
-            claimName: github2telegram-pvc
+  volumeClaimTemplates:
+  - metadata:
+      name: github2telegram-pv
+      namespace: tools
+    spec:
+      accessModes: ["ReadWriteMany"]
+      resources:
+        requests:
+          storage: 50M
