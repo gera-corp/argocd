@@ -28,19 +28,6 @@ data:
       telegram:
         token: "$BOT_TOKEN"
         type: telegram
-# ---
-# apiVersion: v1
-# kind: PersistentVolumeClaim
-# metadata:
-#   name: github2telegram-pvc
-#   namespace: tools
-# spec:
-#   storageClassName: nfs-client
-#   accessModes:
-#     - ReadWriteOnce
-#   resources:
-#     requests:
-#       storage: 50M
 ---
 apiVersion: apps/v1
 kind: StatefulSet
