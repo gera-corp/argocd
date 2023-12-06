@@ -5,7 +5,7 @@ metadata:
   namespace: default
   annotations:
     avp.kubernetes.io/path: "secret/tools/docker_registry"
-    avp.kubernetes.io/kv-version: "1" # 2 is the latest revision in this example
+    avp.kubernetes.io/kv-version: "1"
 type: Opaque
 data:
   token: <value>
