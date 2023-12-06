@@ -25,7 +25,7 @@ spec:
               protocol: TCP
           env:
           - name: DEMO_GREETING
-            value: <dockerconfigjson>
+            value: <value>
 #          - name: DEMO_FAREWELL
 #            value: "Such a sweet sorrow"
       # imagePullSecrets:
