@@ -140,7 +140,7 @@ spec:
   - match: Host(`docker-registry-ui.geracorp.ru`)
     kind: Rule
     middlewares:
-    - name: docker-registry-secret
+    - name: docker-registry-auth
     services:
     - name: docker-registry-ui
       port: 80
