@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: docker-token
-  namespace: default
+  name: github2telegram-creds
+  namespace: tools
   annotations:
     avp.kubernetes.io/path: "secret/tools/github2telegram-bot"
     avp.kubernetes.io/kv-version: "1" # 2 is the latest revision in this example
@@ -90,6 +90,17 @@ spec:
             requests:
               memory: 256Mi
               cpu: "0.2"
+          env:
+          - name: ADMIN_USER
+            valueFrom:
+              secretKeyRef:
+                name: github2telegram-creds
+                key: ADMIN_USER
+          - name: BOT_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: github2telegram-creds
+                key: BOT_TOKEN
           volumeMounts:
             - name: github2telegram-pv
               mountPath: /db
