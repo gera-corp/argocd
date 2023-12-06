@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: miniblog
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: miniblog
+  template:
+    metadata:
+      labels:
+        app: miniblog
+    annotations:
+      avp.kubernetes.io/path: "secret/tools/docker_registry"
+      avp.kubernetes.io/kv-version: "1"
+    spec:
+      containers:
+        - name: miniblog
+          image: gerain/miniblog.core:master-6
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          env:
+          - name: DEMO_GREETING
+            value: <dockerconfigjson>
+#          - name: DEMO_FAREWELL
+#            value: "Such a sweet sorrow"
+      # imagePullSecrets:
+      # - name: ya-reg-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: miniblog-svc
+  namespace: default
+  labels:
+    app: miniblog
+spec:
+  ports:
+    - name: http
+      port: 80
+  selector:
+    app: miniblog
