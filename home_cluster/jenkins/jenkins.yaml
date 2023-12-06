@@ -215,13 +215,13 @@ spec:
           image: jenkins/jenkins:2.426.1-lts-jdk17
           imagePullPolicy: IfNotPresent
           env:
-            - name: JAVA_OPTS
-              value: "-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"
-            - name: VAULT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: vault-jenkins-token
-                  key: token
+          - name: JAVA_OPTS
+            value: "-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"
+          - name: VAULT_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: vault-jenkins-token
+                key: token
           command: ["sh", "-c"]
           args: ['export $(cat /vault/secrets/config | xargs) && env && "/usr/bin/tini" "--" "/usr/local/bin/jenkins.sh"']
           ports:
