@@ -149,7 +149,7 @@ data:
               - vaultStringCredentialImpl:
                   engineVersion: 1
                   id: "vault_token"
-                  path: "secret/tools/jenkins/vault-token"
+                  path: "secret/tools/jenkins/credentials/jenkins-workers"
                   scope: GLOBAL
                   vaultKey: "token"
     security:
