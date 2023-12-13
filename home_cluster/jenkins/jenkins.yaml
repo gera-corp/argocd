@@ -14,8 +14,8 @@ data:
           containerCap: 10
           containerCapStr: "10"
           credentialsId: "kubernetes"
-          jenkinsTunnel: "jenkins-agent.jenkins.svc.cluster.local:50000"
-          jenkinsUrl: "http://jenkins-http.jenkins.svc.cluster.local:8080"
+          jenkinsTunnel: "jenkins-agent:50000"
+          jenkinsUrl: "http://jenkins-http:8080"
           name: "Kubernetes"
           namespace: "jenkins"
           templates:
