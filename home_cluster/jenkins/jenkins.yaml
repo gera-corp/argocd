@@ -229,16 +229,16 @@ spec:
             - containerPort: 50000
               name: jenkins-agent
               protocol: TCP
-          # readinessProbe:
-          #   failureThreshold: 3
-          #   httpGet:
-          #     path: /index.html
-          #     port: 80
-          #     scheme: HTTP
-          #   initialDelaySeconds: 10
-          #   periodSeconds: 30
-          #   successThreshold: 1
-          #   timeoutSeconds: 2
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /login
+              port: jenkins-http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 2
           livenessProbe:
             failureThreshold: 3
             initialDelaySeconds: 30
