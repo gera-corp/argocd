@@ -281,13 +281,12 @@ metadata:
   namespace: jenkins
 spec:
   ports:
-    - nodePort: 30000
-      port: 8080
+    - port: 8080
       protocol: TCP
       targetPort: jenkins-http
   selector:
     app: jenkins
-  type: NodePort
+  type: ClusterIP
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
