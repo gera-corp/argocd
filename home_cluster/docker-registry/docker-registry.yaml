@@ -49,6 +49,8 @@ spec:
           image: joxit/docker-registry-ui:2.5.6
           imagePullPolicy: IfNotPresent
           env:
+            - name: REGISTRY_URL
+              value: "https://docker-registry.geracorp.ru/ui/"
             - name: SINGLE_REGISTRY
               value: "true"
             - name: REGISTRY_TITLE
@@ -213,6 +215,8 @@ spec:
   - match: Host(`docker-registry.geracorp.ru`) && PathPrefix(`/ui`)
     kind: Rule
     middlewares:
+    - name: ui-add-trailing-slash
+    - name: stripprefix
     - name: docker-registry-auth
     services:
     - name: docker-registry-ui
@@ -239,7 +243,28 @@ spec:
   tls:
     secretName: wildcard-home-local-crt
 ---
-apiVersion: traefik.io/v1alpha1
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: stripprefix
+  namespace: tools
+spec:
+  stripPrefix:
+    prefixes:
+      - /ui
+    forceSlash: false
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: ui-add-trailing-slash
+  namespace: tools
+spec:
+  redirectRegex:
+    regex: ^.*/ui$
+    replacement: /ui/
+---
+apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
   name: docker-registry-auth
@@ -247,15 +272,15 @@ metadata:
 spec:
   basicAuth:
     secret: docker-registry-secret
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: docker-registry-secret
-  namespace: tools
-  annotations:
-    avp.kubernetes.io/path: "secret/tools/docker_registry"
-    avp.kubernetes.io/kv-version: "1"
-type: Opaque
-data:
-  users: <users>
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: docker-registry-secret
+#   namespace: tools
+#   annotations:
+#     avp.kubernetes.io/path: "secret/tools/docker_registry"
+#     avp.kubernetes.io/kv-version: "1"
+# type: Opaque
+# data:
+#   users: <users>
