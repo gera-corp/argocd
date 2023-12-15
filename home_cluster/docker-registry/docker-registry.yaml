@@ -165,7 +165,7 @@ spec:
       protocol: TCP
       targetPort: http-dreg-ui
   selector:
-    app: docker-registry-ui
+    app: docker-registry
 ---
 apiVersion: v1
 kind: Service
