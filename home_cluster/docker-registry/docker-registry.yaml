@@ -75,7 +75,7 @@ spec:
               value: "http://docker-registry.tools.svc.cluster.local:5000"
           ports:
             - containerPort: 80
-              name: http-registry
+              name: http-registry-ui
               protocol: TCP
           # readinessProbe:
           #   failureThreshold: 3
@@ -163,7 +163,7 @@ spec:
   ports:
     - port: 80
       protocol: TCP
-      targetPort: http-registry
+      targetPort: http-registry-ui
   selector:
     app: docker-registry-ui
 ---
