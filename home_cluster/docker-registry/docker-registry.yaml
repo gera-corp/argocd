@@ -190,29 +190,9 @@ spec:
   secretName: docker-registry-cert
   dnsNames:
     - docker-registry.geracorp.ru
-    - docker-registry-ui.geracorp.ru
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-prod
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRoute
-metadata:
-  name: docker-registry-ui-tls
-  namespace: tools
-spec:
-  entryPoints:
-    - websecure
-  routes:
-  - match: Host(`docker-registry-ui.geracorp.ru`)
-    kind: Rule
-    middlewares:
-    - name: docker-registry-auth
-    services:
-    - name: docker-registry-ui
-      port: 80
-  tls:
-    secretName: docker-registry-cert
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
@@ -230,6 +210,13 @@ spec:
     services:
     - name: docker-registry
       port: 5000
+  - match: Host(`docker-registry.geracorp.ru`) && PathPrefix(`/ui`)
+    kind: Rule
+    middlewares:
+    - name: docker-registry-auth
+    services:
+    - name: docker-registry-ui
+      port: 80
   tls:
     secretName: docker-registry-cert
 ---
