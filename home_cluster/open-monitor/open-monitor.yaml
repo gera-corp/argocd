@@ -140,5 +140,5 @@ metadata:
   annotations:
     avp.kubernetes.io/path: "secret/tools/open-monitor"
     avp.kubernetes.io/kv-version: "1"
-data:
+stringData:
   users: <users>
