@@ -7,5 +7,6 @@ GitOps K8S repository for Home Lab.
 
 ...
 
-ArgoCD installed Vault Plugin to get secrets from [Hashicorp Vault](https://www.vaultproject.io/)
+ArgoCD installed Vault Plugin to get secrets from [Hashicorp Vault](https://www.vaultproject.io/).
+
 This is not a complete synchronization repository, new data will be uploaded in it.
