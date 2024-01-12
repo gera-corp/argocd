@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: jenkins-casc-congig
+  name: jenkins-casc-config
   namespace: jenkins
 data:
   jenkins.yaml: |
@@ -259,11 +259,11 @@ spec:
               name: jenkins-pv
             - mountPath: /var/jenkins_home/jenkins.yaml
               subPath: jenkins.yaml
-              name: jenkins-casc-congig-volume
+              name: jenkins-casc-config-volume
       volumes:
-        - name: jenkins-casc-congig-volume
+        - name: jenkins-casc-config-volume
           configMap:
-            name: jenkins-casc-congig
+            name: jenkins-casc-config
   volumeClaimTemplates:
   - metadata:
       name: jenkins-pv
