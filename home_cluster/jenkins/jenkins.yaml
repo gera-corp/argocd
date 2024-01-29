@@ -17,7 +17,6 @@ data:
           jenkinsUrl: "http://jenkins-http:8080"
           name: "Kubernetes"
           namespace: "jenkins"
-          serverUrl: "https://k8s-masters.home.local:6443"
           templates:
           - containers:
             - image: "docker-registry.local.geracorp.work/tools/jenkins-agent:v1.0.1"
