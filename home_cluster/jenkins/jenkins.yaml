@@ -13,7 +13,6 @@ data:
       - kubernetes:
           containerCap: 10
           containerCapStr: "10"
-          credentialsId: "kubernetes"
           jenkinsTunnel: "jenkins-agent:50000"
           jenkinsUrl: "http://jenkins-http:8080"
           name: "Kubernetes"
@@ -140,13 +139,6 @@ data:
                   path: "secret/tools/jenkins/credentials/proxmox_credentials"
                   scope: GLOBAL
                   vaultKey: "proxmox_api_password"
-              - vaultFileCredentialImpl:
-                  engineVersion: 1
-                  id: "kubernetes"
-                  path: "secret/tools/jenkins/credentials/kubernetes"
-                  scope: GLOBAL
-                  useKey: true
-                  vaultKey: "config"
               - vaultStringCredentialImpl:
                   engineVersion: 1
                   id: "vault_token"
