@@ -1,0 +1,16 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kibana-ingress
+  namespace: elasticsearch
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`kibana.local.geracorp.work`)
+    kind: Rule
+    services:
+    - name: kibana-kb-http
+      port: 5601
+  tls:
+    secretName: wildcard-home-local-crt
