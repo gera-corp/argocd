@@ -21,7 +21,7 @@ POST _security/role/fluentd_writer
 3. If index lifecycle management is enabled, the role requires the `manage` and `manage_ilm` privileges to load index lifecycle policies, create rollover aliases, and create and manage rollover indices.
 ---
 
-2. Create a fluentd_internal user and assign it the fluentd_writer role. You can create users from the Management > Users UI in Kibana or through the user API:
+#### 2. Create a fluentd_internal user and assign it the fluentd_writer role. You can create users from the Management > Users UI in Kibana or through the user API:
 ```sh
 POST _security/user/fluentd_internal
 {
