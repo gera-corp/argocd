@@ -32,7 +32,6 @@ data:
                 hostPort: 30001
                 name: "jenkins-agt-pk"
               workingDir: "/home/jenkins/agent"
-            id: "363c14a4-efac-48ca-b506-7d42709aea2c"
             imagePullSecrets:
             - name: "docker-registry-geracorp-login"
             label: "jenkins-nomad-worker"
@@ -54,6 +53,20 @@ data:
       numExecutors: 2
       remotingSecurity:
         enabled: true
+      securityRealm:
+        ldap:
+          configurations:
+          - displayNameAttributeName: "cn"
+            inhibitInferRootDN: false
+            managerDN: "cn=${LDAP_USER},ou=people,dc=geracorp,dc=local"
+            managerPasswordSecret: "${LDAP_USER_PASS}"
+            rootDN: "dc=geracorp,dc=local"
+            server: "lldap-service.lldap.svc.cluster.local:3890"
+            userSearch: "(&(uid={0})(memberOf=cn=jenkins-users,ou=groups,dc=geracorp,dc=local))"
+          disableMailAddressResolver: false
+          disableRolePrefixing: true
+          groupIdStrategy: "caseInsensitive"
+          userIdStrategy: "caseInsensitive"
     jobs:
       - script: >
           job('seedjob') {
@@ -188,7 +201,7 @@ spec:
           command: ["jenkins-plugin-cli"]
           args: [
             "--plugins",
-            "dark-theme ansicolor pipeline-stage-view timestamper blueocean configuration-as-code git github hashicorp-vault-plugin job-dsl uno-choice kubernetes",
+            "dark-theme ansicolor pipeline-stage-view timestamper blueocean configuration-as-code git github hashicorp-vault-plugin job-dsl uno-choice kubernetes ldap",
             "--plugin-download-directory",
             "/var/jenkins_home/plugins/"
             ]
@@ -214,6 +227,16 @@ spec:
               secretKeyRef:
                 name: vault-jenkins-token
                 key: token
+          - name: LDAP_USER
+            valueFrom:
+              secretKeyRef:
+                name: lldap-bind-cred
+                key: user
+          - name: LDAP_USER_PASS
+            valueFrom:
+              secretKeyRef:
+                name: lldap-bind-cred
+                key: password
           ports:
             - containerPort: 8080
               name: jenkins-http

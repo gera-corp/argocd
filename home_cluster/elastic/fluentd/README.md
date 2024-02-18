@@ -26,7 +26,7 @@ POST _security/role/fluentd_writer
 POST _security/user/fluentd_internal
 {
   "password" : "x-pack-test-password",
-  "roles" : [ "fluentd_writer"],
+  "roles" : ["fluentd_writer"],
   "full_name" : "Internal Fluentd User"
 }
 ```
