@@ -58,7 +58,7 @@ data:
           configurations:
           - displayNameAttributeName: "cn"
             inhibitInferRootDN: false
-            managerDN: "cn=${LDAP_USER},ou=people,dc=geracorp,dc=local"
+            managerDN: "uid=${LDAP_USER},ou=people,dc=geracorp,dc=local"
             managerPasswordSecret: "${LDAP_USER_PASS}"
             rootDN: "dc=geracorp,dc=local"
             server: "lldap-service.lldap.svc.cluster.local:3890"
