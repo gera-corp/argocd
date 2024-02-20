@@ -9,19 +9,19 @@ data:
       agentProtocols:
       - "JNLP4-connect"
       - "Ping"
-    authorizationStrategy:
-      projectMatrix:
-        entries:
-        - group:
-            name: "jenkins-admin"
-            permissions:
-            - "Overall/Administer"
-        - group:
-            name: "jenkins-users"
-            permissions:
-            - "Job/Build"
-            - "Job/Read"
-            - "Overall/Read"
+      authorizationStrategy:
+        projectMatrix:
+          entries:
+          - group:
+              name: "jenkins-admin"
+              permissions:
+              - "Overall/Administer"
+          - group:
+              name: "jenkins-users"
+              permissions:
+              - "Job/Build"
+              - "Job/Read"
+              - "Overall/Read"
       clouds:
       - kubernetes:
           containerCap: 10
