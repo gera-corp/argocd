@@ -102,6 +102,19 @@ data:
                 external('jobDSL/seedJob.groovy')
               }
             }
+            properties {
+              authorizationMatrix {
+                inheritanceStrategy {
+                    nonInheriting()
+                }
+                entries {
+                  group {
+                    name('jenkins-admin')
+                    permissions([ 'Job/Build', 'Job/Configure', 'Job/Read' ])
+                  }
+                }
+              }
+            }
           }
     appearance:
       themeManager:
