@@ -74,7 +74,7 @@ data:
             managerDN: "uid=${LDAP_USER},ou=people,dc=geracorp,dc=local"
             managerPasswordSecret: "${LDAP_USER_PASS}"
             rootDN: "dc=geracorp,dc=local"
-            server: "lldap-service.lldap.svc.cluster.local:3890" 
+            server: "lldap-service.lldap.svc.cluster.local:3890"
             userSearch: "(&(uid={0})(|(memberOf=cn=jenkins-users,ou=groups,dc=geracorp,dc=local)(memberOf=cn=jenkins-admin,ou=groups,dc=geracorp,dc=local)))"
           disableMailAddressResolver: false
           disableRolePrefixing: true
