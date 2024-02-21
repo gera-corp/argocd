@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: lldap
+  name: lldap
+  namespace: lldap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lldap
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: lldap
+    spec:
+      containers:
+        - env:
+            - name: GID
+              value: "1001"
+            - name: LLDAP_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: lldap-credentials
+                  key: lldap-jwt-secret
+            - name: LLDAP_LDAP_BASE_DN
+              valueFrom:
+                secretKeyRef:
+                  name: lldap-credentials
+                  key: base-dn
+            - name: LLDAP_LDAP_USER_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: lldap-credentials
+                  key: lldap-ldap-user-pass
+            - name: TZ
+              value: CET
+            - name: UID
+              value: "1001"
+          image: nitnelave/lldap:latest
+          name: lldap
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: "1"
+            requests:
+              memory: 256Mi
+              cpu: "0.2"
+          ports:
+            - containerPort: 3890
+            - containerPort: 17170
+          volumeMounts:
+            - mountPath: /data
+              name: lldap-data
+      restartPolicy: Always
+      volumes:
+        - name: lldap-data
+          persistentVolumeClaim:
+            claimName: lldap-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: lldap
+  name: lldap-data
+  namespace: lldap
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
