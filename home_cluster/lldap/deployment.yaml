@@ -60,6 +60,7 @@ spec:
         - name: lldap-data
           persistentVolumeClaim:
             claimName: lldap-data
+        - name: lldap-credentials
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
