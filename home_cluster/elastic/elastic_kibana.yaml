@@ -19,7 +19,7 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: 1Gi
+            storage: 5Gi
         storageClassName: nfs-client
 ---
 apiVersion: kibana.k8s.elastic.co/v1
