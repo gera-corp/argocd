@@ -21,7 +21,7 @@ spec:
       serviceAccountName: jenkins-admin
       initContainers:
         - name: jenkins-install-plugin
-          image: jenkins/jenkins:2.440.1-lts
+          image: jenkins/jenkins:2.440.2-lts
           imagePullPolicy: IfNotPresent
           command: ["jenkins-plugin-cli"]
           args: [
@@ -42,7 +42,7 @@ spec:
               name: jenkins-pv
       containers:
         - name: jenkins
-          image: jenkins/jenkins:2.440.1-lts
+          image: jenkins/jenkins:2.440.2-lts
           imagePullPolicy: IfNotPresent
           env:
           - name: JAVA_OPTS
