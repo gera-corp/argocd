@@ -61,16 +61,26 @@ spec:
               cpu: "0.2"
           volumeMounts:
             - mountPath: /nod32update/www
-              name: nod32update-pv
+              name: nod32update-base-pv
+            - mountPath: /nod32update/log
+              name: nod32update-logs-pv
   volumeClaimTemplates:
   - metadata:
-      name: nod32update-pv
+      name: nod32update-base-pv
       namespace: tools
     spec:
       accessModes: ["ReadWriteMany"]
       resources:
         requests:
           storage: 5G
+  - metadata:
+      name: nod32update-logs-pv
+      namespace: tools
+    spec:
+      accessModes: ["ReadWriteMany"]
+      resources:
+        requests:
+          storage: 1G
 ---
 apiVersion: v1
 kind: Service
