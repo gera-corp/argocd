@@ -4,7 +4,7 @@ metadata:
   name: elastic
   namespace: elasticsearch
 spec:
-  version: 8.12.2
+  version: 8.13.0
   volumeClaimDeletePolicy: DeleteOnScaledownOnly
   nodeSets:
   - name: default
@@ -28,7 +28,7 @@ metadata:
   name: kibana
   namespace: elasticsearch
 spec:
-  version: 8.12.2
+  version: 8.13.0
   count: 1
   elasticsearchRef:
     name: elastic
