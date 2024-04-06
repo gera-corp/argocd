@@ -179,6 +179,12 @@ data:
                   vaultKey: "proxmox_api_password"
               - vaultStringCredentialImpl:
                   engineVersion: 1
+                  id: "proxmox_api_token_id_proxmox_api_token_secret"
+                  path: "secret/tools/jenkins/credentials/proxmox_credentials"
+                  scope: GLOBAL
+                  vaultKey: "proxmox_api_token_id_proxmox_api_token_secret"
+              - vaultStringCredentialImpl:
+                  engineVersion: 1
                   id: "vault_token"
                   path: "secret/tools/jenkins/credentials/jenkins-workers"
                   scope: GLOBAL
