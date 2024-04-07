@@ -57,6 +57,13 @@ data:
       disableRememberMe: false
       disabledAdministrativeMonitors:
       - "hudson.util.DoubleLaunchChecker"
+      globalNodeProperties:
+      - envVars:
+          env:
+          - key: "PROXMOX_ADDR"
+            value: "https://proxmox.home.local:8006"
+          - key: "VAULT_ADDR"
+            value: "http://vault.service.consul:8200"
       labelAtoms:
       - name: "built-in"
       - name: "jenkins-agent-8kb89"
