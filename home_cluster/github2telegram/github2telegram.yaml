@@ -1,17 +1,4 @@
 apiVersion: v1
-kind: Secret
-metadata:
-  name: github2telegram-creds
-  namespace: tools
-  annotations:
-    avp.kubernetes.io/path: "secret/tools/github2telegram-bot"
-    avp.kubernetes.io/kv-version: "1"
-type: Opaque
-data:
-  ADMIN_USER: <ADMIN_USER>
-  BOT_TOKEN: <BOT_TOKEN>
----
-apiVersion: v1
 kind: ConfigMap
 metadata:
   name: github2telegram-config
@@ -59,13 +46,20 @@ spec:
     metadata:
       labels:
         app: github2telegram
+      annotations:
+        vault.security.banzaicloud.io/vault-addr: "https://vault.bankvault:8200"
+        vault.security.banzaicloud.io/vault-role: "default"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+        #vault.security.banzaicloud.io/vault-tls-secret: "vault-tls"
+        vault.security.banzaicloud.io/vault-agent: "false"
+        vault.security.banzaicloud.io/vault-path: "kubernetes"
     spec:
       terminationGracePeriodSeconds: 10
       securityContext:
         fsGroup: 472
         supplementalGroups:
           - 0
-      serviceAccountName: internal-app
+      serviceAccountName: default
       containers:
         - name: github2telegram
           image: gerain/github2telegram:test4
@@ -83,15 +77,9 @@ spec:
               cpu: "0.2"
           env:
           - name: ADMIN_USER
-            valueFrom:
-              secretKeyRef:
-                name: github2telegram-creds
-                key: ADMIN_USER
+            value: vault:secret/data/github2telegram-bot#ADMIN_USER
           - name: BOT_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: github2telegram-creds
-                key: BOT_TOKEN
+            value: vault:secret/data/github2telegram-bot#BOT_TOKEN
           volumeMounts:
             - name: github2telegram-pv
               mountPath: /db
