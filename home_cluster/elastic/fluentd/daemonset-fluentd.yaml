@@ -13,6 +13,13 @@ spec:
       labels:
         k8s-app: fluentd-logging
         version: v1
+      annotations:
+        vault.security.banzaicloud.io/vault-addr: "https://vault.bankvault:8200"
+        vault.security.banzaicloud.io/vault-role: "default"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+        #vault.security.banzaicloud.io/vault-tls-secret: "vault-tls"
+        vault.security.banzaicloud.io/vault-agent: "false"
+        vault.security.banzaicloud.io/vault-path: "kubernetes"
     spec:
       serviceAccount: fluentd
       serviceAccountName: fluentd
@@ -27,15 +34,9 @@ spec:
           - name: FLUENT_ELASTICSEARCH_SCHEME
             value: "https"
           - name: FLUENT_ELASTICSEARCH_USER
-            valueFrom:
-              secretKeyRef:
-                name: es-credentials
-                key: ES_USERNAME
+            value: vault:secret/data/elasticsearch/fluentd#ES_USERNAME
           - name: FLUENT_ELASTICSEARCH_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: es-credentials
-                key: ES_PASSWORD
+            value: vault:secret/data/elasticsearch/fluentd#ES_PASSWORD
           # If the name of the Kubernetes node the plugin is running on is set as an environment variable with the name K8S_NODE_NAME, it will reduce cache misses and needless calls to the Kubernetes API.
           - name: K8S_NODE_NAME
             valueFrom:
