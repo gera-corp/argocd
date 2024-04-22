@@ -16,7 +16,15 @@ spec:
     metadata:
       labels:
         app: influxdb
+      annotations:
+        vault.security.banzaicloud.io/vault-addr: "https://vault.bankvault:8200"
+        vault.security.banzaicloud.io/vault-role: "default"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+        #vault.security.banzaicloud.io/vault-tls-secret: "vault-tls"
+        vault.security.banzaicloud.io/vault-agent: "false"
+        vault.security.banzaicloud.io/vault-path: "kubernetes"
     spec:
+      serviceAccountName: default
       containers:
         - name: influxdb
           image: influxdb:2.7.5-alpine
@@ -24,15 +32,9 @@ spec:
             - name: DOCKER_INFLUXDB_INIT_MODE
               value: setup
             - name: DOCKER_INFLUXDB_INIT_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: influxdb-secret
-                  key: DOCKER_INFLUXDB_INIT_USERNAME
+              value: vault:secret/data/influxdb#DOCKER_INFLUXDB_INIT_USERNAME
             - name: DOCKER_INFLUXDB_INIT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: influxdb-secret
-                  key: DOCKER_INFLUXDB_INIT_PASSWORD
+              value: vault:secret/data/influxdb#DOCKER_INFLUXDB_INIT_PASSWORD
             - name: DOCKER_INFLUXDB_INIT_ORG
               value: geracorp
             - name: DOCKER_INFLUXDB_INIT_BUCKET
