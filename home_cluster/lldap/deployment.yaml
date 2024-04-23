@@ -16,26 +16,25 @@ spec:
     metadata:
       labels:
         app: lldap
+      annotations:
+        vault.security.banzaicloud.io/vault-addr: "https://vault.bankvault:8200"
+        vault.security.banzaicloud.io/vault-role: "default"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+        #vault.security.banzaicloud.io/vault-tls-secret: "vault-tls"
+        vault.security.banzaicloud.io/vault-agent: "false"
+        vault.security.banzaicloud.io/vault-path: "kubernetes"
     spec:
+      serviceAccountName: default
       containers:
         - env:
             - name: GID
               value: "1001"
             - name: LLDAP_JWT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: lldap-credentials
-                  key: lldap-jwt-secret
+              value: vault:secret/data/lldap#lldap-jwt-secret
             - name: LLDAP_LDAP_BASE_DN
-              valueFrom:
-                secretKeyRef:
-                  name: lldap-credentials
-                  key: base-dn
+              value: vault:secret/data/lldap#base-dn
             - name: LLDAP_LDAP_USER_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: lldap-credentials
-                  key: lldap-ldap-user-pass
+              value: vault:secret/data/lldap#lldap-ldap-admin-pass
             - name: TZ
               value: CET
             - name: UID
