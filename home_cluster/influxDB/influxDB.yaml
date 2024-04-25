@@ -27,7 +27,7 @@ spec:
       serviceAccountName: default
       containers:
         - name: influxdb
-          image: influxdb:2.7.5-alpine
+          image: influxdb:2.7.6-alpine
           env:
             - name: DOCKER_INFLUXDB_INIT_MODE
               value: setup
