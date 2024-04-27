@@ -14,7 +14,7 @@ spec:
         k8s-app: fluentd-logging
         version: v1
       annotations:
-        vault.security.banzaicloud.io/vault-addr: "https://vault.bankvault:8200"
+        vault.security.banzaicloud.io/vault-addr: "https://vault.bank-vault:8200"
         vault.security.banzaicloud.io/vault-role: "default"
         vault.security.banzaicloud.io/vault-skip-verify: "true"
         #vault.security.banzaicloud.io/vault-tls-secret: "vault-tls"
