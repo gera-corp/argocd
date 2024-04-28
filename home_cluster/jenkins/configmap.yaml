@@ -132,7 +132,7 @@ data:
         configuration:
           disableChildPoliciesOverride: false
           engineVersion: 2
-          vaultCredentialId: "769574d0-cf8a-4558-9b56-6827ae4b1d3a"
+          vaultCredentialId: "vault_k8s_credential"
           vaultUrl: "https://vault.local.geracorp.work"
       location:
         url: "https://jenkins.local.geracorp.work"
@@ -199,7 +199,7 @@ data:
                   scope: GLOBAL
                   vaultKey: "token"
               - vaultKubernetesCredential:
-                  id: "769574d0-cf8a-4558-9b56-6827ae4b1d3a"
+                  id: "vault_k8s_credential"
                   role: "default"
                   scope: GLOBAL
                   usePolicies: false
