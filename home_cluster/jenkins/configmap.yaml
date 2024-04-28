@@ -130,8 +130,10 @@ data:
     unclassified:
       hashicorpVault:
         configuration:
-          vaultCredentialId: "vaultToken"
-          vaultUrl: "https://vault.bank-vault:8200"
+          disableChildPoliciesOverride: false
+          engineVersion: 2
+          vaultCredentialId: "769574d0-cf8a-4558-9b56-6827ae4b1d3a"
+          vaultUrl: "https://vault.local.geracorp.work"
       location:
         url: "https://jenkins.local.geracorp.work"
     credentials:
@@ -196,6 +198,11 @@ data:
                   path: "secret/tools/jenkins/credentials/jenkins-workers"
                   scope: GLOBAL
                   vaultKey: "token"
+              - vaultKubernetesCredential:
+                  id: "769574d0-cf8a-4558-9b56-6827ae4b1d3a"
+                  role: "default"
+                  scope: GLOBAL
+                  usePolicies: false
     security:
       gitHostKeyVerificationConfiguration:
         sshHostKeyVerificationStrategy: "noHostKeyVerificationStrategy"
