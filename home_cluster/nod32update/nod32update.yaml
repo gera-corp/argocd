@@ -143,12 +143,8 @@ metadata:
   name: nod32update-secret
   namespace: tools
   annotations:
-    vault.security.banzaicloud.io/vault-addr: "https://vault.bank-vault:8200"
-    vault.security.banzaicloud.io/vault-role: "default"
-    vault.security.banzaicloud.io/vault-skip-verify: "true"
-    #vault.security.banzaicloud.io/vault-tls-secret: "vault-tls"
-    vault.security.banzaicloud.io/vault-agent: "false"
-    vault.security.banzaicloud.io/vault-path: "kubernetes"
+    avp.kubernetes.io/path: "secret/tools/nod32update"
+    avp.kubernetes.io/kv-version: "1"
 type: Opaque
-stringData:
-  users: ${vault:secret/data/nod32update#users}
+data:
+  users: <users>
