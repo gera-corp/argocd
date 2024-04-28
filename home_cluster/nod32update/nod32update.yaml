@@ -137,14 +137,14 @@ spec:
   basicAuth:
     secret: nod32update-secret
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: nod32update-secret
-  namespace: tools
-  annotations:
-    avp.kubernetes.io/path: "secret/tools/nod32update"
-    avp.kubernetes.io/kv-version: "1"
-type: Opaque
-data:
-  users: <users>
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: nod32update-secret
+#   namespace: tools
+#   annotations:
+#     avp.kubernetes.io/path: "secret/tools/nod32update"
+#     avp.kubernetes.io/kv-version: "1"
+# type: Opaque
+# data:
+#   users: <users>
