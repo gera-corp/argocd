@@ -140,62 +140,51 @@ data:
       system:
         domainCredentials:
           - credentials:
-              - vaultTokenCredential:
-                  description: "Vault Token"
-                  id: "vaultToken"
-                  scope: GLOBAL
-                  token: "${VAULT_TOKEN}"
               - vaultUsernamePasswordCredentialImpl:
-                  engineVersion: 1
+                  engineVersion: 2
                   id: "jenkins-github-integration"
                   passwordKey: "password"
-                  path: "secret/tools/jenkins/credentials/jenkins-github-integration"
+                  path: "secret/jenkins/credentials/jenkins-github-integration"
                   scope: GLOBAL
                   usernameKey: "username"
-              - vaultStringCredentialImpl:
-                  engineVersion: 1
-                  id: "nomad-token-jenkins-workers"
-                  path: "nomad/creds/jenkins-workers"
-                  scope: GLOBAL
-                  vaultKey: "secret_id"
               - vaultSSHUserPrivateKeyImpl:
-                  engineVersion: 1
+                  engineVersion: 2
                   id: "github_jenkins_deploy_key"
                   passphraseKey: "passphrase"
-                  path: "secret/tools/jenkins/credentials/github_jenkins"
+                  path: "secret/jenkins/credentials/github_jenkins"
                   privateKeyKey: "private_key"
                   scope: GLOBAL
                   usernameKey: "username"
               - vaultSSHUserPrivateKeyImpl:
-                  engineVersion: 1
+                  engineVersion: 2
                   id: "github_packer_proxmox_deploy_key"
                   passphraseKey: "passphrase"
-                  path: "secret/tools/jenkins/credentials/github_packer_proxmox"
+                  path: "secret/jenkins/credentials/github_packer_proxmox"
                   privateKeyKey: "private_key"
                   scope: GLOBAL
                   usernameKey: "username"
               - vaultStringCredentialImpl:
-                  engineVersion: 1
+                  engineVersion: 2
                   id: "proxmox_api_user"
-                  path: "secret/tools/jenkins/credentials/proxmox_credentials"
+                  path: "secret/jenkins/credentials/proxmox_credentials"
                   scope: GLOBAL
                   vaultKey: "proxmox_api_user"
               - vaultStringCredentialImpl:
-                  engineVersion: 1
+                  engineVersion: 2
                   id: "proxmox_api_password"
-                  path: "secret/tools/jenkins/credentials/proxmox_credentials"
+                  path: "secret/jenkins/credentials/proxmox_credentials"
                   scope: GLOBAL
                   vaultKey: "proxmox_api_password"
               - vaultStringCredentialImpl:
-                  engineVersion: 1
+                  engineVersion: 2
                   id: "proxmox_api_token_id_proxmox_api_token_secret"
-                  path: "secret/tools/jenkins/credentials/proxmox_credentials"
+                  path: "secret/jenkins/credentials/proxmox_credentials"
                   scope: GLOBAL
                   vaultKey: "proxmox_api_token_id_proxmox_api_token_secret"
               - vaultStringCredentialImpl:
-                  engineVersion: 1
+                  engineVersion: 2
                   id: "vault_token"
-                  path: "secret/tools/jenkins/credentials/jenkins-workers"
+                  path: "secret/jenkins/credentials/jenkins-workers"
                   scope: GLOBAL
                   vaultKey: "token"
               - vaultKubernetesCredential:
