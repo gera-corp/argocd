@@ -132,13 +132,13 @@ spec:
   basicAuth:
     secret: open-monitor-secret
 ---
-# apiVersion: v1
-# kind: Secret
-# metadata:
-#   name: open-monitor-secret
-#   namespace: tools
-#   annotations:
-#     avp.kubernetes.io/path: "secret/tools/open-monitor"
-#     avp.kubernetes.io/kv-version: "1"
-# stringData:
-#   users: <users>
+apiVersion: v1
+kind: Secret
+metadata:
+  name: open-monitor-secret
+  namespace: tools
+  annotations:
+    avp.kubernetes.io/path: "secret/data/open-monitor"
+    avp.kubernetes.io/kv-version: "2"
+stringData:
+  users: <users>
