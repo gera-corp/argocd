@@ -63,7 +63,7 @@ data:
           - key: "PROXMOX_ADDR"
             value: "https://proxmox.home.local:8006"
           - key: "VAULT_ADDR"
-            value: "http://vault.service.consul:8200"
+            value: "https://vault.bank-vault:8200"
       labelAtoms:
       - name: "built-in"
       - name: "jenkins-agent-8kb89"
@@ -131,7 +131,7 @@ data:
       hashicorpVault:
         configuration:
           vaultCredentialId: "vaultToken"
-          vaultUrl: "http://vault.service.consul:8200"
+          vaultUrl: "${VAULT_ADDR}"
       location:
         url: "https://jenkins.local.geracorp.work"
     credentials:
