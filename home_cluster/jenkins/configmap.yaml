@@ -131,7 +131,7 @@ data:
       hashicorpVault:
         configuration:
           vaultCredentialId: "vaultToken"
-          vaultUrl: "${VAULT_ADDR}"
+          vaultUrl: "https://vault.bank-vault:8200"
       location:
         url: "https://jenkins.local.geracorp.work"
     credentials:
