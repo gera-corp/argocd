@@ -30,5 +30,4 @@ spec:
     services:
     - name: lldap-service
       port: 17170
-  tls:
-    secretName: letsencrypt-cloud-production-tls
+  tls: {}

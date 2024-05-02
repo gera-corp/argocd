@@ -12,5 +12,4 @@ spec:
     services:
     - name: kibana-kb-http
       port: 5601
-  tls:
-    secretName: letsencrypt-cloud-production-tls
+  tls: {}
