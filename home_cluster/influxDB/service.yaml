@@ -25,5 +25,4 @@ spec:
     services:
     - name: influxdb-service
       port: influxdb
-  tls:
-    secretName: letsencrypt-cloud-production-tls
+  tls: {}
