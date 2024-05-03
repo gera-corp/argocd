@@ -47,11 +47,6 @@ spec:
           env:
           - name: JAVA_OPTS
             value: "-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"
-          - name: VAULT_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: vault-jenkins-token
-                key: token
           - name: LDAP_USER
             valueFrom:
               secretKeyRef:
@@ -113,4 +108,3 @@ spec:
       resources:
         requests:
           storage: 5G
-
