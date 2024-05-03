@@ -48,15 +48,9 @@ spec:
           - name: JAVA_OPTS
             value: "-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"
           - name: LDAP_USER
-            valueFrom:
-              secretKeyRef:
-                name: lldap-bind-cred
-                key: user
+            value: vault:secret/data/lldap#bind_jenkins_user
           - name: LDAP_USER_PASS
-            valueFrom:
-              secretKeyRef:
-                name: lldap-bind-cred
-                key: password
+            value: vault:secret/data/lldap#bind_jenkins_password
           ports:
             - containerPort: 8080
               name: jenkins-http
