@@ -15,7 +15,15 @@ spec:
     helm:
       skipCrds: true
       values: |-
-        #Snip the values
+        grafana:
+          enabled: true
+          persistence:
+            enabled: true
+            type: pvc
+            accessModes:
+              - ReadWriteOnce
+            size: 5Gi
+            storageClassName: nfs-client
     chart: kube-prometheus-stack
   syncPolicy:
     automated:
