@@ -15,13 +15,6 @@ spec:
     helm:
       skipCrds: true
       values: |-
-        kubeEtcd:
-          enabled: true
-          serviceMonitor:
-            enabled: true
-            serviceMonitor:
-              enabled: true
-              insecureSkipVerify: true
         grafana:
           enabled: true
           persistence:
