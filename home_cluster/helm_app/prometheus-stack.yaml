@@ -59,7 +59,7 @@ spec:
               repeat_interval: 12h
               receiver: 'telegram'
               routes:
-              - receiver: 'null'
+              - receiver: 'telegram'
                 matchers:
                   - alertname = "Watchdog"
             receivers:
