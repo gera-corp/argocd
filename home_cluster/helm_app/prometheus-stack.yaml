@@ -24,6 +24,72 @@ spec:
               - ReadWriteOnce
             size: 5Gi
             storageClassName: nfs-client
+        alertmanager:
+          enabled: true
+          config:
+            global:
+              resolve_timeout: 5m
+            inhibit_rules:
+              - source_matchers:
+                  - 'severity = critical'
+                target_matchers:
+                  - 'severity =~ warning|info'
+                equal:
+                  - 'namespace'
+                  - 'alertname'
+              - source_matchers:
+                  - 'severity = warning'
+                target_matchers:
+                  - 'severity = info'
+                equal:
+                  - 'namespace'
+                  - 'alertname'
+              - source_matchers:
+                  - 'alertname = InfoInhibitor'
+                target_matchers:
+                  - 'severity = info'
+                equal:
+                  - 'namespace'
+              - target_matchers:
+                  - 'alertname = InfoInhibitor'
+            route:
+              group_by: ['namespace']
+              group_wait: 30s
+              group_interval: 5m
+              repeat_interval: 12h
+              receiver: 'telegram'
+              routes:
+              - receiver: 'null'
+                matchers:
+                  - alertname = "Watchdog"
+            receivers:
+            - name: 'telegram'
+              webhook_configs:
+              - url: 'https://api.telegram.org/bot7189406686:AAEEprycgOq_Ct_B6YbOQmEUK30fHIXCeyI/sendMessage'
+                send_resolved: true
+                http_config:
+                  headers:
+                    Content-Type: 'application/json'
+                message: |
+                  {
+                    "chat_id": "282307402",
+                    "text": "{{ template \"telegram.default.message\" . }}"
+                  }
+            templates:
+            - '/etc/alertmanager/config/*.tmpl'
+          templateFiles:
+            template_1.tmpl: |-
+              {{ define "telegram.default.message" }}
+              Alert:
+              {{ range .Alerts }}
+                *Alert:* {{ .Annotations.summary }}
+                *Description:* {{ .Annotations.description }}
+                *Severity:* {{ .Labels.severity }}
+                *Status:* {{ .Status }}
+                *Starts At:* {{ .StartsAt }}
+                *Ends At:* {{ .EndsAt }}
+              {{ end }}
+              {{ end }}
     chart: kube-prometheus-stack
   syncPolicy:
     automated:
