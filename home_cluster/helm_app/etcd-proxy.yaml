@@ -1,0 +1,112 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: metrics-proxy-master
+  namespace: kube-system
+data:
+  haproxy.cfg: |
+    defaults
+      mode http
+      timeout connect 5000ms
+      timeout client 5000ms
+      timeout server 5000ms
+      default-server maxconn 10
+
+    frontend kube-controller-manager
+      bind ${NODE_IP}:10257
+      mode tcp
+      option tcplog
+      http-request deny if !{ path /metrics }
+      default_backend kube-controller-manager
+    backend kube-controller-manager
+      mode tcp
+      server kube-controller-manager 127.0.0.1:10257 check
+
+    frontend kube-scheduler
+      bind ${NODE_IP}:10259
+      mode tcp
+      option tcplog
+      http-request deny if !{ path /metrics }
+      default_backend kube-scheduler
+    backend kube-scheduler
+      mode tcp
+      server kube-scheduler 127.0.0.1:10259 check
+
+    frontend etcd
+      bind ${NODE_IP}:2381
+      http-request deny if !{ path /metrics }
+      default_backend etcd
+    backend etcd
+      server etcd 127.0.0.1:2381
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: metrics-proxy-master
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: metrics-proxy-master
+  template:
+    metadata:
+      labels:
+        app: metrics-proxy-master
+    spec:
+      hostNetwork: true
+      serviceAccountName: default
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        operator: Exists
+      containers:
+      - name: haproxy
+        image: haproxy:3.0.2
+        env:
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.hostIP
+        ports:
+        - name: kube-ctrl-mgr # Port names are limited to 15 characters
+          containerPort: 10257
+        - name: kube-scheduler
+          containerPort: 10259
+        - name: etcd
+          containerPort: 2381
+        volumeMounts:
+        - mountPath: /usr/local/etc/haproxy
+          name: haproxy-config
+      volumes:
+      - configMap:
+          name: metrics-proxy-master
+        name: haproxy-config
+
+# KubeProxy
+
+# The metrics bind address of kube-proxy is default to 127.0.0.1:10249 that prometheus instances cannot access to. You should expose metrics by changing metricsBindAddress field value to 0.0.0.0:10249 if you want to collect them.
+
+# Depending on the cluster, the relevant part config.conf will be in ConfigMap kube-system/kube-proxy or kube-system/kube-proxy-config. For example:
+
+# kubectl -n kube-system edit cm kube-proxy
+
+# apiVersion: v1
+# data:
+#   config.conf: |-
+#     apiVersion: kubeproxy.config.k8s.io/v1alpha1
+#     kind: KubeProxyConfiguration
+#     # ...
+#     # metricsBindAddress: 127.0.0.1:10249
+#     metricsBindAddress: 0.0.0.0:10249
+#     # ...
+#   kubeconfig.conf: |-
+#     # ...
+# kind: ConfigMap
+# metadata:
+#   labels:
+#     app: kube-proxy
+#   name: kube-proxy
+#   namespace: kube-system
