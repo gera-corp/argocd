@@ -9,9 +9,14 @@ spec:
     name: in-cluster
     namespace: monitoring
   project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
   source:
     repoURL: 'https://prometheus-community.github.io/helm-charts'
-    targetRevision: 61.3.2
+    chart: kube-prometheus-stack
+    targetRevision: 61.*
     helm:
       skipCrds: true
       values: |-
@@ -91,12 +96,6 @@ spec:
                 *Ends At:* {{ .EndsAt }}
               {{ end }}
               {{ end }}
-    chart: kube-prometheus-stack
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
