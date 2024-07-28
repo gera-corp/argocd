@@ -22,13 +22,6 @@ spec:
       values: |-
         grafana:
           enabled: true
-          image:
-            registry: docker.io
-            repository: grafana/grafana
-            # if not set appVersion field from Chart.yaml is used
-            tag: "11.0.1"
-            sha: ""
-            pullPolicy: IfNotPresent
           persistence:
             enabled: true
             type: pvc
