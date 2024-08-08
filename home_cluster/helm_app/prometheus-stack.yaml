@@ -20,6 +20,20 @@ spec:
     helm:
       skipCrds: true
       values: |-
+        prometheus:
+          enabled: true
+          prometheusSpec:
+            replicas: 1
+            resources:
+              limits:
+                cpu: 1
+                memory: 4Gi
+              requests:
+                cpu: 100m
+                memory: 1024Mi
+            podMonitorSelectorNilUsesHelmValues: false
+            serviceMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
         grafana:
           enabled: true
           image:
