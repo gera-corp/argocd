@@ -31,9 +31,11 @@ spec:
               requests:
                 cpu: 100m
                 memory: 1024Mi
-            podMonitorSelectorNilUsesHelmValues: false
-            serviceMonitorSelectorNilUsesHelmValues: false
             ruleSelectorNilUsesHelmValues: false
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            probeSelectorNilUsesHelmValues: false
+            scrapeConfigSelectorNilUsesHelmValues: false
         grafana:
           enabled: true
           image:
