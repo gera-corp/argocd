@@ -17,7 +17,7 @@ spec:
       labels:
         app: lldap
       annotations:
-        vault.security.banzaicloud.io/vault-addr: "https://vault.bank-vault:8200"
+        vault.security.banzaicloud.io/vault-addr: "https://vault-cluster.local.geracorp.work"
         vault.security.banzaicloud.io/vault-role: "default"
         vault.security.banzaicloud.io/vault-skip-verify: "true"
         #vault.security.banzaicloud.io/vault-tls-secret: "vault-tls"
