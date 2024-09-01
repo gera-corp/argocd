@@ -63,7 +63,7 @@ data:
           - key: "PROXMOX_ADDR"
             value: "https://proxmox.home.local:8006"
           - key: "VAULT_ADDR"
-            value: "https://vault.bank-vault:8200"
+            value: "https://vault-cluster.local.geracorp.work"
       labelAtoms:
       - name: "built-in"
       - name: "jenkins-agent-8kb89"
@@ -133,7 +133,7 @@ data:
           disableChildPoliciesOverride: false
           engineVersion: 2
           vaultCredentialId: "vault_k8s_credential"
-          vaultUrl: "https://vault.local.geracorp.work"
+          vaultUrl: "https://vault-cluster.local.geracorp.work"
       location:
         url: "https://jenkins.local.geracorp.work"
     credentials:
