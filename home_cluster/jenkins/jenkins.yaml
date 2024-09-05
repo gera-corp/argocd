@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   labels:
     app: jenkins
@@ -24,88 +24,90 @@ spec:
       securityContext:
         fsGroup: 472
         supplementalGroups:
-          - 0
+        - 0
       serviceAccountName: jenkins-admin
       initContainers:
-        - name: jenkins-install-plugin
-          image: jenkins/jenkins:2.462.2-lts
-          imagePullPolicy: IfNotPresent
-          command: ["jenkins-plugin-cli"]
-          args: [
-            "--plugins",
-            "dark-theme ansicolor pipeline-stage-view timestamper blueocean configuration-as-code git github hashicorp-vault-plugin job-dsl uno-choice kubernetes ldap matrix-auth",
-            "--plugin-download-directory",
-            "/var/jenkins_home/plugins/"
-            ]
-          resources:
-            limits:
-              memory: 2048Mi
-              cpu: "1"
-            requests:
-              memory: 1024Mi
-              cpu: "0.2"
-          volumeMounts:
-            - mountPath: /var/jenkins_home
-              name: jenkins-pv
+      - name: jenkins-install-plugin
+        image: jenkins/jenkins:2.462.2-lts
+        imagePullPolicy: IfNotPresent
+        command: ["jenkins-plugin-cli"]
+        args: ["--plugins", "dark-theme ansicolor pipeline-stage-view timestamper blueocean configuration-as-code git github hashicorp-vault-plugin job-dsl uno-choice kubernetes ldap matrix-auth", "--plugin-download-directory", "/var/jenkins_home/plugins/"]
+        resources:
+          limits:
+            memory: 2048Mi
+            cpu: "1"
+          requests:
+            memory: 1024Mi
+            cpu: "0.2"
+        volumeMounts:
+        - mountPath: /var/jenkins_home
+          name: jenkins-pv
       containers:
-        - name: jenkins
-          image: jenkins/jenkins:2.462.2-lts
-          imagePullPolicy: IfNotPresent
-          env:
-          - name: JAVA_OPTS
-            value: "-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"
-          - name: LDAP_USER
-            value: vault:secret/data/lldap#bind_jenkins_user
-          - name: LDAP_USER_PASS
-            value: vault:secret/data/lldap#bind_jenkins_password
-          ports:
-            - containerPort: 8080
-              name: jenkins-http
-              protocol: TCP
-            - containerPort: 50000
-              name: jenkins-agent
-              protocol: TCP
-          readinessProbe:
-            failureThreshold: 3
-            httpGet:
-              path: /login
-              port: jenkins-http
-              scheme: HTTP
-            initialDelaySeconds: 10
-            periodSeconds: 30
-            successThreshold: 1
-            timeoutSeconds: 2
-          livenessProbe:
-            failureThreshold: 3
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            successThreshold: 1
-            tcpSocket:
-              port: jenkins-http
-            timeoutSeconds: 1
-          resources:
-            limits:
-              memory: 2048Mi
-              cpu: "1"
-            requests:
-              memory: 1024Mi
-              cpu: "0.2"
-          volumeMounts:
-            - mountPath: /var/jenkins_home
-              name: jenkins-pv
-            - mountPath: /var/jenkins_home/jenkins.yaml
-              subPath: jenkins.yaml
-              name: jenkins-casc-config-volume
+      - name: jenkins
+        image: jenkins/jenkins:2.462.2-lts
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: JAVA_OPTS
+          value: "-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"
+        - name: LDAP_USER
+          value: vault:secret/data/lldap#bind_jenkins_user
+        - name: LDAP_USER_PASS
+          value: vault:secret/data/lldap#bind_jenkins_password
+        ports:
+        - containerPort: 8080
+          name: jenkins-http
+          protocol: TCP
+        - containerPort: 50000
+          name: jenkins-agent
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /login
+            port: jenkins-http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 2
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: jenkins-http
+          timeoutSeconds: 1
+        resources:
+          limits:
+            memory: 2048Mi
+            cpu: "1"
+          requests:
+            memory: 1024Mi
+            cpu: "0.2"
+        volumeMounts:
+        - mountPath: /var/jenkins_home
+          name: jenkins-pv
+        - mountPath: /var/jenkins_home/jenkins.yaml
+          subPath: jenkins.yaml
+          name: jenkins-casc-config-volume
       volumes:
-        - name: jenkins-casc-config-volume
-          configMap:
-            name: jenkins-casc-config
-  volumeClaimTemplates:
-  - metadata:
-      name: jenkins-pv
-      namespace: jenkins
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      resources:
-        requests:
-          storage: 5G
+      - name: jenkins-casc-config-volume
+        configMap:
+          name: jenkins-casc-config
+      - name: jenkins-pv
+        persistentVolumeClaim:
+          claimName: jenkins-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-pv
+  namespace: jenkins
+spec:
+  storageClassName: nfs-client
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5G
