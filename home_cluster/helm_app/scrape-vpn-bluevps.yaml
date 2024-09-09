@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: vpn-server
+  namespace: monitoring
+  labels:
+    prometheus: test
+    release: prom
+spec:
+  scheme: HTTP
+  metricsPath: /metrics
+  staticConfigs:
+    - labels:
+        job: VPN-server
+      targets:
+        - trol.geracorp.org:9100
