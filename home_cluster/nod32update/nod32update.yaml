@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   labels:
     app: nod32update
@@ -9,7 +9,6 @@ spec:
   selector:
     matchLabels:
       app: nod32update
-  serviceName: nod32update
   replicas: 1
   template:
     metadata:
@@ -64,23 +63,39 @@ spec:
               name: nod32update-base-pv
             - mountPath: /nod32update/log
               name: nod32update-logs-pv
-  volumeClaimTemplates:
-  - metadata:
-      name: nod32update-base-pv
-      namespace: tools
-    spec:
-      accessModes: ["ReadWriteMany"]
-      resources:
-        requests:
-          storage: 5G
-  - metadata:
-      name: nod32update-logs-pv
-      namespace: tools
-    spec:
-      accessModes: ["ReadWriteMany"]
-      resources:
-        requests:
-          storage: 1G
+      volumes:
+        - name: nod32update-base-pv
+          persistentVolumeClaim:
+            claimName: nod32update-base-pv
+        - name: nod32update-logs-pv
+          persistentVolumeClaim:
+            claimName: nod32update-logs-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nod32update-base-pv
+  namespace: tools
+spec:
+  storageClassName: nfs-client
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5G
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nod32update-logs-pv
+  namespace: tools
+spec:
+  storageClassName: nfs-client
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1G
 ---
 apiVersion: v1
 kind: Service
@@ -148,4 +163,3 @@ metadata:
 type: Opaque
 stringData:
   users: <users>
-
