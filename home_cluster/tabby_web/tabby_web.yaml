@@ -91,20 +91,6 @@ spec:
       storage: 1Gi
   storageClassName: nfs-client
 ---
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: tabby-web-cert
-  namespace: tabby
-spec:
-  commonName: tabby.geracorp.ru
-  secretName: tabby-web-cert
-  dnsNames:
-    - tabby.geracorp.ru
-  issuerRef:
-    kind: ClusterIssuer
-    name: letsencrypt-prod
----
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -114,10 +100,9 @@ spec:
   entryPoints:
     - websecure
   routes:
-  - match: Host(`tabby.geracorp.ru`)
+  - match: Host(`tabby.local.geracorp.work`)
     kind: Rule
     services:
     - name: tabby-web
       port: tabby-web-port
-  tls:
-    secretName: tabby-web-cert
+  tls: {}
