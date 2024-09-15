@@ -1,0 +1,123 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tabby
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: tabby-web
+  name: tabby-web
+  namespace: tabby
+spec:
+  selector:
+    matchLabels:
+      app: tabby-web
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tabby-web
+      annotations:
+        vault.security.banzaicloud.io/vault-addr: "https://vault-cluster.local.geracorp.work"
+        vault.security.banzaicloud.io/vault-role: "default"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+        #vault.security.banzaicloud.io/vault-tls-secret: "vault-tls"
+        vault.security.banzaicloud.io/vault-agent: "false"
+        vault.security.banzaicloud.io/vault-path: "kubernetes"
+    spec:
+      containers:
+        - name: tabby-web
+          image: ghcr.io/eugeny/tabby-web:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              name: tabby-web-port
+              protocol: TCP
+          resources:
+            limits:
+              cpu: "1"
+              memory: 400Mi
+            requests:
+              cpu: 100m
+              memory: 200Mi
+          env:
+            - name: DATABASE_URL
+              value: "sqlite:////app-dist/db.sqlite3"
+            - name: APP_DIST_STORAGE
+              value: "file:///app-dist"
+            - name: PORT
+              value: "8000"
+            - name: DEBUG
+              value: "True"
+            - name: SOCIAL_AUTH_GITHUB_KEY
+              value: vault:secret/data/tabby#SOCIAL_AUTH_GITHUB_KEY
+            - name: SOCIAL_AUTH_GITHUB_SECRET
+              value: vault:secret/data/tabby#SOCIAL_AUTH_GITHUB_SECRET
+          volumeMounts:
+            - name: tabby-web-data
+              mountPath: /app-dist
+      volumes:
+        - name: tabby-web-data
+          persistentVolumeClaim:
+            claimName: tabby-web-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tabby-web
+  namespace: tabby
+spec:
+  ports:
+    - name: tabby-web-port
+      port: 8000
+      protocol: TCP
+      targetPort: tabby-web-port
+  selector:
+    app: tabby-web
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tabby-web-data
+  namespace: tabby
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: nfs-client
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tabby-web-cert
+  namespace: tabby
+spec:
+  commonName: tabby.geracorp.ru
+  secretName: tabby-web-cert
+  dnsNames:
+    - tabby.geracorp.ru
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-prod
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: tabby-tls
+  namespace: tabby
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`tabby.geracorp.ru`)
+    kind: Rule
+    services:
+    - name: tabby-web
+      port: tabby-web-port
+  tls:
+    secretName: tabby-web-cert
