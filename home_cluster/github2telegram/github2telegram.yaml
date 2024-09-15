@@ -30,7 +30,7 @@ data:
         type: telegram
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   labels:
     app: github2telegram
@@ -40,7 +40,6 @@ spec:
   selector:
     matchLabels:
       app: github2telegram
-  serviceName: github2telegram
   replicas: 1
   template:
     metadata:
@@ -90,12 +89,28 @@ spec:
         - name: github2telegram-config-volume
           configMap:
             name: github2telegram-config
-  volumeClaimTemplates:
-  - metadata:
-      name: github2telegram-pv
-      namespace: tools
-    spec:
-      accessModes: ["ReadWriteMany"]
-      resources:
-        requests:
-          storage: 50M
+        - name: github2telegram-pv
+          persistentVolumeClaim:
+            claimName: github2telegram-pv
+  # volumeClaimTemplates:
+  # - metadata:
+  #     name: github2telegram-pv
+  #     namespace: tools
+  #   spec:
+  #     accessModes: ["ReadWriteMany"]
+  #     resources:
+  #       requests:
+  #         storage: 50M
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: github2telegram-pv
+  namespace: tools
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50M
