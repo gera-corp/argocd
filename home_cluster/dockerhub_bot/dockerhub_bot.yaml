@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: dockerhub-bot
+  name: dockerhub-bot
+  namespace: tools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dockerhub-bot
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: dockerhub-bot
+      annotations:
+        vault.security.banzaicloud.io/vault-addr: "https://vault-cluster.local.geracorp.work"
+        vault.security.banzaicloud.io/vault-role: "default"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+        #vault.security.banzaicloud.io/vault-tls-secret: "vault-tls"
+        vault.security.banzaicloud.io/vault-agent: "false"
+        vault.security.banzaicloud.io/vault-path: "kubernetes"
+    spec:
+      serviceAccountName: default
+      containers:
+        - env:
+            - name: TELEGRAM_TOKEN
+              value: vault:secret/data/dockerhub_bot#TELEGRAM_TOKEN
+            - name: TELEGRAM_CHAT_ID
+              value: vault:secret/data/dockerhub_bot#TELEGRAM_CHAT_ID
+            - name: AUTHORIZED_USER_ID
+              value: vault:secret/data/dockerhub_bot#AUTHORIZED_USER_ID
+            - name: CHECK_INTERVAL
+              value: "600"
+            - name: DATA_FILE
+              value: "data/docker_images.json"
+          image: gerain/dockerhub_bot:latest
+          name: dockerhub-bot
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: "1"
+            requests:
+              memory: 256Mi
+              cpu: "0.2"
+          volumeMounts:
+            - mountPath: /bot/data
+              name: dockerhub-bot-data
+      restartPolicy: Always
+      volumes:
+        - name: dockerhub-bot-data
+          persistentVolumeClaim:
+            claimName: dockerhub-bot-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: dockerhub-bot
+  name: dockerhub-bot-data
+  namespace: tools
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
