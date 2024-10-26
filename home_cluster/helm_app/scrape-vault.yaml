@@ -1,10 +1,10 @@
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
-  name: vault-01
+  name: vault-cluster
   namespace: monitoring
   labels:
-    prometheus: test
+    prometheus: vault
     release: prom
 spec:
   scheme: HTTP
