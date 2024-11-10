@@ -63,7 +63,7 @@ spec:
         operator: Exists
       containers:
       - name: haproxy
-        image: haproxy:3.0.2
+        image: haproxy:alpine3.20
         env:
         - name: NODE_IP
           valueFrom:
