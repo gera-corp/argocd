@@ -38,6 +38,13 @@ spec:
             scrapeConfigSelectorNilUsesHelmValues: false
         grafana:
           enabled: true
+          sidecar:
+            dashboards:
+              annotations:
+                grafana_folder: "Kubernetes"
+              folderAnnotation: "grafana_folder"
+              provider:
+                foldersFromFilesStructure: true
           persistence:
             enabled: true
             type: pvc
