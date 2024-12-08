@@ -112,31 +112,31 @@ spec:
                 *Ends At:* {{ .EndsAt }}
               {{ end }}
               {{ end }}
-# ---
-# apiVersion: argoproj.io/v1alpha1
-# kind: Application
-# metadata:
-#   name: kube-prometheus-stack-crds
-#   annotations:
-#     argocd.argoproj.io/sync-wave: "2"
-# spec:
-#   destination:
-#     name: in-cluster
-#     namespace: monitoring
-#   project: default
-#   source:
-#     repoURL: https://github.com/prometheus-community/helm-charts.git
-#     path: charts/kube-prometheus-stack/charts/crds/
-#     targetRevision: kube-prometheus-stack-61.*
-#     directory:
-#       recurse: true
-#   syncPolicy:
-#     syncOptions:
-#       - CreateNamespace=true
-#       - Replace=true
-#     automated:
-#       prune: true
-#       selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack-crds
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  destination:
+    name: in-cluster
+    namespace: monitoring
+  project: default
+  source:
+    repoURL: https://github.com/prometheus-community/helm-charts.git
+    path: charts/kube-prometheus-stack/charts/crds/
+    targetRevision: kube-prometheus-stack-66.*
+    directory:
+      recurse: true
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - Replace=true
+    automated:
+      prune: true
+      selfHeal: true
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
