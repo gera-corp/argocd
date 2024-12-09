@@ -22,22 +22,22 @@ spec:
         - name: influxdb
           image: influxdb:2.7.11-alpine
           env:
-            - name: DOCKER_INFLUXDB_INIT_MODE
-              value: setup
-            - name: DOCKER_INFLUXDB_INIT_USERNAME
-              value: vault:secret/data/influxdb#DOCKER_INFLUXDB_INIT_USERNAME
-            - name: DOCKER_INFLUXDB_INIT_PASSWORD
-              value: vault:secret/data/influxdb#DOCKER_INFLUXDB_INIT_PASSWORD
-            - name: DOCKER_INFLUXDB_INIT_ORG
-              value: geracorp
-            - name: DOCKER_INFLUXDB_INIT_BUCKET
-              value: proxmox
+          - name: DOCKER_INFLUXDB_INIT_MODE
+            value: setup
+          - name: DOCKER_INFLUXDB_INIT_USERNAME
+            value: vault:secret/data/influxdb#DOCKER_INFLUXDB_INIT_USERNAME
+          - name: DOCKER_INFLUXDB_INIT_PASSWORD
+            value: vault:secret/data/influxdb#DOCKER_INFLUXDB_INIT_PASSWORD
+          - name: DOCKER_INFLUXDB_INIT_ORG
+            value: geracorp
+          - name: DOCKER_INFLUXDB_INIT_BUCKET
+            value: proxmox
           ports:
-            - containerPort: 8086
-              name: http-influxdb
+          - containerPort: 8086
+            name: http-influxdb
           volumeMounts:
-            - mountPath: /var/lib/influxdb2
-              name: data
+          - mountPath: /var/lib/influxdb2
+            name: data
   volumeClaimTemplates:
     - metadata:
         name: data
