@@ -162,4 +162,4 @@ metadata:
     avp.kubernetes.io/kv-version: "2"
 type: Opaque
 stringData:
-  users: <users>
+  users: vault:secret/data/nod32update#users
