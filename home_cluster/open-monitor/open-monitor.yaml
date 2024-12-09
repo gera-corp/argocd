@@ -137,8 +137,5 @@ kind: Secret
 metadata:
   name: open-monitor-secret
   namespace: tools
-  annotations:
-    avp.kubernetes.io/path: "secret/data/open-monitor"
-    avp.kubernetes.io/kv-version: "2"
 stringData:
-  users: <users>
+  users: secret/data/open-monitor#users
