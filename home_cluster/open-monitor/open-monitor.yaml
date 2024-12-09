@@ -138,4 +138,4 @@ metadata:
   name: open-monitor-secret
   namespace: tools
 stringData:
-  users: secret/data/open-monitor#users
+  users: vault:secret/data/open-monitor#users
