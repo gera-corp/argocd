@@ -276,9 +276,6 @@ kind: Secret
 metadata:
   name: docker-registry-secret
   namespace: tools
-  annotations:
-    avp.kubernetes.io/path: "secret/data/docker_registry"
-    avp.kubernetes.io/kv-version: "2"
 type: Opaque
 stringData:
-  users: <users>
+  users: vault:secret/data/docker_registry#users
