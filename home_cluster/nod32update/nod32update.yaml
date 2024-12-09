@@ -157,9 +157,6 @@ kind: Secret
 metadata:
   name: nod32update-secret
   namespace: tools
-  annotations:
-    avp.kubernetes.io/path: "secret/data/nod32update"
-    avp.kubernetes.io/kv-version: "2"
 type: Opaque
 stringData:
   users: vault:secret/data/nod32update#users

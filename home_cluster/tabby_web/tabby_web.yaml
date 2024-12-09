@@ -20,13 +20,6 @@ spec:
     metadata:
       labels:
         app: tabby-web
-      annotations:
-        vault.security.banzaicloud.io/vault-addr: "https://vault-cluster.local.geracorp.work"
-        vault.security.banzaicloud.io/vault-role: "default"
-        vault.security.banzaicloud.io/vault-skip-verify: "true"
-        #vault.security.banzaicloud.io/vault-tls-secret: "vault-tls"
-        vault.security.banzaicloud.io/vault-agent: "false"
-        vault.security.banzaicloud.io/vault-path: "kubernetes"
     spec:
       containers:
         - name: tabby-web
