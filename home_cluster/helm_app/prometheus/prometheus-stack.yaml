@@ -96,12 +96,15 @@ spec:
             receivers:
             - name: 'telegram'
               telegram_configs:
-              - bot_token: vault:secret/data/alertmanager#telegram_token
+              - bot_token_file: '/etc/alertmanager/secrets/alertmanager-secrets/telegram-bot-token'
                 api_url: 'https://api.telegram.org'
                 chat_id: 282307402
                 parse_mode: ''
             templates:
             - '/etc/alertmanager/config/*.tmpl'
+          alertmanagerSpec:
+            secrets:
+            - alertmanager-secrets
           templateFiles:
             template_1.tmpl: |-
               {{ define "telegram.default.message" }}
