@@ -96,7 +96,7 @@ spec:
             receivers:
             - name: 'telegram'
               telegram_configs:
-              - bot_token: 'vault:secret/data/alertmanager#telegram_token'
+              - bot_token: vault:secret/data/alertmanager#telegram_token
                 api_url: 'https://api.telegram.org'
                 chat_id: 282307402
                 parse_mode: ''
