@@ -134,6 +134,14 @@ spec:
             metricRelabelings:   # Remove pod label
               - action: labeldrop
                 regex: pod
+        kubeProxy:
+          enabled: true
+          service:
+            enabled: true
+            port: 10249
+            targetPort: 10249
+            selector:
+              k8s-app: kube-proxy
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
