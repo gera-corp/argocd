@@ -22,7 +22,7 @@ spec:
           - 0
       containers:
         - name: nod32update
-          image: gerain/nod32update-mirror:01.02.2024
+          image: gerain/nod32update-mirror:12.12.2024
           imagePullPolicy: IfNotPresent
           command: ["sh", "-c"]
           args:
