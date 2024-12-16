@@ -23,13 +23,13 @@ spec:
     helm:
       skipCrds: false
       values: |-
+        defaultRules:
+          rules:
+            kubeControllerManager: false
+            kubeSchedulerAlerting: false
+            kubeSchedulerRecording: false
         prometheus:
           enabled: true
-          defaultRules:
-            rules:
-              kubeControllerManager: false
-              kubeSchedulerAlerting: false
-              kubeSchedulerRecording: false
           prometheusSpec:
             replicas: 1
             resources:
