@@ -23,8 +23,8 @@ spec:
     helm:
       skipCrds: false
       valuesObject:
-        image:
-          tag: "master"
+        selfMonitor:
+          enabled: true
         serviceMonitor:
           enabled: true
           targets:
