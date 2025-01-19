@@ -22,7 +22,7 @@ spec:
     targetRevision: 68.*
     helm:
       skipCrds: false
-      values: |-
+      valuesObject:
         defaultRules:
           rules:
             kubeControllerManager: false
