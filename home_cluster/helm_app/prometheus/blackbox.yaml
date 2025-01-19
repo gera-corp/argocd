@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-blackbox-exporter
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  destination:
+    name: in-cluster
+    namespace: monitoring
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  source:
+    repoURL: 'https://prometheus-community.github.io/helm-charts'
+    chart: prometheus-blackbox-exporter
+    targetRevision: 9.*
+    helm:
+      skipCrds: false
+      values:
+        serviceMonitor:
+          enabled: true
+          targets:
+            - name: seafile                     # Human readable URL that will appear in Prometheus / AlertManager
+              url: https://sea.geracorp.ru      # The URL that blackbox will scrape
+              hostname: sea.geracorp.ru         # HTTP probes can accept an additional `hostname` parameter that will set `Host` header and TLS SNI
+            - name: mail-biostal
+              url: https://mail.biostal.ru:4040
+              hostname: mail.biostal.ru
+            - name: control-biostal
+              url: https://control.biostal.ru:4081
+              hostname: control.biostal.ru
+            - name: cloud-biostal
+              url: https://cloud.biostal.ru
+              hostname: cloud.biostal.ru
