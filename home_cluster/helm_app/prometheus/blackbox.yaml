@@ -22,7 +22,7 @@ spec:
     targetRevision: 9.*
     helm:
       skipCrds: false
-      values:
+      values: |-
         serviceMonitor:
           enabled: true
           targets:
