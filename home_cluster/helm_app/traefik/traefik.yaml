@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  destination:
+    name: in-cluster
+    namespace: traefik
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  source:
+    repoURL: 'https://helm.traefik.io/traefik'
+    chart: traefik
+    targetRevision: 34.*
+    helm:
+      skipCrds: false
+      valuesObject:
+        additionalArguments:
+          - "--serversTransport.insecureSkipVerify=true"
+          - "--entrypoints.web.transport.respondingTimeouts.readTimeout=0s" # fix issue for upload large file https://github.com/immich-app/immich/discussions/8872
+          - "--entrypoints.websecure.transport.respondingTimeouts.readTimeout=0s" # fix issue for upload large file https://github.com/immich-app/immich/discussions/8872
+        #  - "--entryPoints.web.http.redirections.entryPoint.to=websecure"
+        #  - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
+        #  - "--providers.kubernetesingress.ingressclass=traefik-internal"
+        #  - "--log.level=DEBUG"
+        service:
+          annotations:
+            external-dns.alpha.kubernetes.io/hostname: '*.local.geracorp.work'
+---
+apiVersion: traefik.io/v1alpha1
+kind: TLSStore
+metadata:
+  name: default
+  namespace: traefik
+spec:
+  defaultCertificate:
+    secretName: letsencrypt-cloud-production-tls
+
