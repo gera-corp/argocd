@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: home-pc
+  namespace: monitoring
+  labels:
+    prometheus: home-pc
+    release: prom
+spec:
+  scheme: HTTP
+  metricsPath: /metrics
+  staticConfigs:
+    - labels:
+        job: home-pc
+      targets:
+        - 10.0.0.11:4445
