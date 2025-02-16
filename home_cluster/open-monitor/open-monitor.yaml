@@ -20,7 +20,7 @@ spec:
           - 0
       containers:
         - name: open-monitor
-          image: gerain/open-monitor:16.02.2025-5
+          image: gerain/open-monitor:16.02.2025-6
           imagePullPolicy: IfNotPresent
           env:
             - name: OPENVPNMONITOR_DEFAULT_DATETIMEFORMAT
