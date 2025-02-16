@@ -59,17 +59,17 @@ spec:
               memory: 256Mi
               cpu: "0.2"
           volumeMounts:
-            - mountPath: /nod32update/www
+            - mountPath: /var/www/nod32mirror
               name: nod32update-base-pv
-            - mountPath: /nod32update/log
-              name: nod32update-logs-pv
+            # - mountPath: /nod32update/log
+            #   name: nod32update-logs-pv
       volumes:
         - name: nod32update-base-pv
           persistentVolumeClaim:
             claimName: nod32update-base-pv
-        - name: nod32update-logs-pv
-          persistentVolumeClaim:
-            claimName: nod32update-logs-pv
+        # - name: nod32update-logs-pv
+        #   persistentVolumeClaim:
+        #     claimName: nod32update-logs-pv
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
