@@ -54,7 +54,7 @@ spec:
       serviceAccountName: default
       containers:
         - name: github2telegram
-          image: gerain/github2telegram:v0.0.2
+          image: gerain/github2telegram:v0.0.2-1
           imagePullPolicy: IfNotPresent
           command:
             ['sh', '-c']
