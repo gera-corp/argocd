@@ -6,9 +6,6 @@ metadata:
 data:
   jenkins.yaml: |
     jenkins:
-      agentProtocols:
-      - "JNLP4-connect"
-      - "Ping"
       authorizationStrategy:
         projectMatrix:
           entries:
