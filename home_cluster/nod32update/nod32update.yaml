@@ -85,19 +85,6 @@ spec:
       storage: 5Gi
 ---
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: nod32update-logs-pv
-  namespace: tools
-spec:
-  storageClassName: nfs-client
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1G
----
-apiVersion: v1
 kind: Service
 metadata:
   name: nod32update
