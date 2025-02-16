@@ -77,12 +77,12 @@ metadata:
   name: nod32update-base-pv
   namespace: tools
 spec:
-  storageClassName: nfs-client
+  storageClassName: openmediavault-nfs-client
   accessModes:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 5G
+      storage: 5Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
