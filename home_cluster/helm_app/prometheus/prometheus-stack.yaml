@@ -140,17 +140,15 @@ spec:
             secrets:
             - alertmanager-secrets
           templateFiles:
-            template_1.tmpl: |-
-              {{ define "telegram.default.message" }}
-              Alert:
+            template_1.tmpl: |
               {{ range .Alerts }}
-                *Alert:* {{ .Annotations.summary }}
-                *Description:* {{ .Annotations.description }}
-                *Severity:* {{ .Labels.severity }}
-                *Status:* {{ .Status }}
-                *Starts At:* {{ .StartsAt }}
-                *Ends At:* {{ .EndsAt }}
-              {{ end }}
+              --------------------------------------
+              🖥️  <b>Host:</b> {{ .Labels.instance }}
+              {{ if eq .Labels.severity "critical" }}❌  <b>Severity:</b> {{ .Labels.severity }}
+              {{ else if eq .Labels.severity "warning" }}⚠️  <b>Severity:</b> {{ .Labels.severity }}
+              {{ else }}❗  <b>Severity:</b> {{ .Labels.severity }}{{ end }}--------------------------------------
+              🗒️  <b>Description:</b><pre><code>{{ .Annotations.description }}</code></pre>
+
               {{ end }}
         kubeEtcd:
           enabled: true
