@@ -117,15 +117,25 @@ spec:
           config:
             global:
               resolve_timeout: 5m
+            inhibit_rules:
+            - source_matchers:
+                - 'inhibit=true'
+              target_matchers:
+                - 'severity=info'
             route:
               group_by: ['alertname', 'namespace']
               group_wait: 30s
               group_interval: 5m
               repeat_interval: 12h
               routes:
-              - match:
+              - matchers:
+                  - 'severity=~"warning|critical|info"'
                 receiver: 'telegram'
                 continue: true
+              - matchers:
+                  - 'inhibit=true'
+                receiver: 'null'
+                сontinue: false
             receivers:
             - name: 'null'
             - name: 'telegram'

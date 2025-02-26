@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: openmediavault
+  namespace: monitoring
+  labels:
+    prometheus: openmediavault
+    release: prom
+spec:
+  scheme: HTTP
+  metricsPath: /
+  staticConfigs:
+    - labels:
+        job: openmediavault
+      targets:
+        - 192.168.1.155:9103
