@@ -24,10 +24,40 @@ spec:
       skipCrds: false
       valuesObject:
         defaultRules:
+          create: true
           rules:
+            alertmanager: false
+            etcd: true
+            configReloaders: true
+            general: true
+            k8s: true
+            kubeApiserverAvailability: true
+            kubeApiserverBurnrate: true
+            kubeApiserverHistogram: true
+            kubeApiserverSlos: true
             kubeControllerManager: false
+            kubelet: true
+            kubeProxy: true
+            kubePrometheusGeneral: true
+            kubePrometheusNodeRecording: true
+            kubernetesApps: true
+            kubernetesResources: true
+            kubernetesStorage: true
+            kubernetesSystem: true
             kubeSchedulerAlerting: false
             kubeSchedulerRecording: false
+            kubeStateMetrics: true
+            network: false
+            node: true
+            nodeExporterAlerting: true
+            nodeExporterRecording: true
+            prometheus: true
+            prometheusOperator: true
+          disabled:
+            Watchdog: true
+            InfoInhibitor: true
+            KubeMemoryOvercommit: true
+            KubeCPUOvercommit: true
         prometheus:
           enabled: true
           prometheusSpec:
@@ -117,25 +147,15 @@ spec:
           config:
             global:
               resolve_timeout: 5m
-            inhibit_rules:
-            - source_matchers:
-                - 'inhibit=true'
-              target_matchers:
-                - 'severity=info'
             route:
               group_by: ['alertname', 'namespace']
               group_wait: 30s
               group_interval: 5m
               repeat_interval: 12h
               routes:
-              - matchers:
-                  - 'severity=~"warning|critical|info"'
+              - match:
                 receiver: 'telegram'
                 continue: true
-              - matchers:
-                  - 'inhibit=true'
-                receiver: 'null'
-                сontinue: false
             receivers:
             - name: 'null'
             - name: 'telegram'
