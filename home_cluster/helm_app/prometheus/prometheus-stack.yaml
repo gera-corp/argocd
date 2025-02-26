@@ -141,6 +141,7 @@ spec:
             - alertmanager-secrets
           templateFiles:
             template_1.tmpl: |
+              {{ define "telegram.default.message" }}
               {{ range .Alerts }}
               --------------------------------------
               🖥️  <b>Host:</b> {{ .Labels.instance }}
@@ -148,7 +149,7 @@ spec:
               {{ else if eq .Labels.severity "warning" }}⚠️  <b>Severity:</b> {{ .Labels.severity }}
               {{ else }}❗  <b>Severity:</b> {{ .Labels.severity }}{{ end }}--------------------------------------
               🗒️  <b>Description:</b><pre><code>{{ .Annotations.description }}</code></pre>
-
+              {{ end }}
               {{ end }}
         kubeEtcd:
           enabled: true
