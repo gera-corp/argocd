@@ -134,6 +134,7 @@ spec:
                 api_url: 'https://api.telegram.org'
                 chat_id: 282307402
                 parse_mode: ''
+                send_resolved: true
             templates:
             - '/etc/alertmanager/config/*.tmpl'
           alertmanagerSpec:
