@@ -174,15 +174,14 @@ spec:
             template_1.tmpl: |
               {{ define "telegram.default.message" }}
               {{ range .Alerts }}
-              --------------------------------------
               🖥️  <b>Host:</b> {{ .Labels.instance }}
-              Alert: {{ .Annotations.summary }}
+              ❗️  <b>Alert</b><code> {{ .Annotations.summary }}</code>
               {{ if eq .Labels.severity "critical" }}❌  <b>Severity:</b> {{ .Labels.severity }}
               {{ else if eq .Labels.severity "warning" }}⚠️  <b>Severity:</b> {{ .Labels.severity }}
               {{ else }}❗  <b>Severity:</b> {{ .Labels.severity }}{{ end }}--------------------------------------
               🗒️  <b>Description:</b><pre><code>{{ .Annotations.description }}</code></pre>
               {{ end }}
-              Status: {{ .Status }}
+              Status: <b>{{ .Status }}</b>
               Starts At: {{ .StartsAt }}
               Ends At: {{ .EndsAt }}
               {{ end }}
