@@ -1,5 +1,5 @@
 resources:
-- telebot/telebot.yaml
+- telebot.yaml
 images:
 - name: ghcr.io/alexvmd/telebot
   newTag: v1.0.2
