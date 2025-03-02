@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: telebot
+  name: telebot
+  namespace: alexvmd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telebot
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: telebot
+    spec:
+      serviceAccountName: default
+      imagePullSecrets:
+        - name: alexvmd-telebot-cr
+      containers:
+        - env:
+          - name: TELEGRAM_TOKEN
+            value: vault:secret/data/alexvmd/telebot#TELEGRAM_TOKEN
+          - name: GOOGLE_CREDENTIALS
+            value: vault:secret/data/alexvmd/telebot#GOOGLE_CREDENTIALS
+          image: ghcr.io/alexvmd/telebot:v1.0.2
+          name: telebot
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: "1"
+            requests:
+              memory: 256Mi
+              cpu: "0.2"
+      restartPolicy: Always
