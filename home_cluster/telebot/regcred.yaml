@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alexvmd-telebot-cr
+  namespace: alexvmd
+type: kubernetes.io/dockerconfigjson
+stringData:
+  .dockerconfigjson: '{"auths":{"docker.gitlab.rip:4567":{"auth":"dmF1bHQ6c2VjcmV0L2RhdGEvYWxleHZtZC9kb2NrZXItcmVnaXN0cnkjTE9HSU46dmF1bHQ6c2VjcmV0L2RhdGEvYWxleHZtZC9kb2NrZXItcmVnaXN0cnkjVE9LRU4="}}}'
