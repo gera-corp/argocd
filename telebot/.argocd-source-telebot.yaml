@@ -1,0 +1,3 @@
+kustomize:
+  images:
+  - ghcr.io/alexvmd/telebot:v1.0.3
