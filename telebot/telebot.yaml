@@ -18,8 +18,8 @@ spec:
         app: telebot
     spec:
       serviceAccountName: default
-      # imagePullSecrets:
-      #   - name: alexvmd-telebot-cr
+      imagePullSecrets:
+        - name: alexvmd-telebot-cr
       containers:
         - env:
           - name: TELEGRAM_TOKEN
