@@ -24,11 +24,11 @@ spec:
         - name: nod32update
           image: gerain/nod32py:v1.0.1-1
           imagePullPolicy: IfNotPresent
-          command: ["sh", "-c"]
-          args:
-          - |
-            "nginx" "-g" "daemon off;" &
-            while true; do /usr/local/bin/python /app/pynod/update.py; sleep 3h; done
+          # command: ["sh", "-c"]
+          # args:
+          # - |
+          #   "nginx" "-g" "daemon off;" &
+          #   while true; do /usr/local/bin/python /app/pynod/update.py; sleep 3h; done
           ports:
             - containerPort: 80
               name: http-nod32up
