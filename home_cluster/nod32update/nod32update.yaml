@@ -22,7 +22,7 @@ spec:
           - 0
       containers:
         - name: nod32update
-          image: gerain/nod32py:v1.0.1
+          image: gerain/nod32py:v1.0.1-1
           imagePullPolicy: IfNotPresent
           command: ["sh", "-c"]
           args:
