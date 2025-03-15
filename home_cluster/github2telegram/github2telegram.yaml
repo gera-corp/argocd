@@ -63,10 +63,10 @@ spec:
           resources:
             limits:
               memory: 512Mi
-              cpu: "1"
+              cpu: "750m"
             requests:
               memory: 256Mi
-              cpu: "0.2"
+              cpu: "500m"
           env:
           - name: ADMIN_USER
             value: vault:secret/data/github2telegram-bot#ADMIN_USER
