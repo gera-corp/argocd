@@ -19,7 +19,7 @@ spec:
   source:
     repoURL: 'https://prometheus-community.github.io/helm-charts'
     chart: kube-prometheus-stack
-    targetRevision: 69.*
+    targetRevision: 70.*
     helm:
       skipCrds: false
       valuesObject:
@@ -182,8 +182,6 @@ spec:
               🗒️  <b>Description:</b><pre><code>{{ .Annotations.description }}</code></pre>
               {{ end }}
               Status: <b>{{ .Status }}</b>
-              Starts At: {{ .StartsAt }}
-              Ends At: {{ .EndsAt }}
               {{ end }}
         kubeEtcd:
           enabled: true
