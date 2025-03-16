@@ -122,12 +122,6 @@ spec:
                   target_label: kubernetes_pod_name
                   replacement: $1
                   action: replace
-                - source_labels: [__address__]
-                  separator: ;
-                  regex: ([^:]+)(?::\d+)?
-                  target_label: pod_ip
-                  replacement: $1
-                  action: replace
         grafana:
           enabled: true
           sidecar:
@@ -177,7 +171,7 @@ spec:
               {{ define "telegram.default.message" }}
               {{ range .Alerts }}
               {{ if eq .Status "firing" }}❌  <b>Status:</b> Firing{{ else if eq .Status "resolved" }}✅  <b>Status:</b> Resolved{{ end }}
-              🖥️  <b>Host:</b> {{ range .Labels.SortedPairs }} • {{ .Name }}: `{{ .Value }}` {{ end }}
+              🖥️  <b>Host:</b> {{ .Labels.instance }}
               ❗️  <b>Alert</b><code> {{ .Annotations.summary }}</code>
               {{ if eq .Labels.severity "critical" }}💥  <b>Severity:</b> {{ .Labels.severity }}
               {{ else if eq .Labels.severity "warning" }}⚠️  <b>Severity:</b> {{ .Labels.severity }}
