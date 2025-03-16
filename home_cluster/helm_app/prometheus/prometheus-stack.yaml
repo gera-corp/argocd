@@ -183,7 +183,6 @@ spec:
               {{ else }}❗️  <b>Severity:</b> {{ .Labels.severity }}{{ end }}
               🗒️  <b>Description:</b><pre><code>{{ .Annotations.description }}</code></pre>
               {{ end }}
-              Status: <b>{{ .Status }}</b>
               {{ end }}
         kubeEtcd:
           enabled: true
