@@ -14,9 +14,3 @@ spec:
         job: home-pc
       targets:
         - 10.0.0.11:4445
-  relabelConfigs:
-    - sourceLabels: [__address__]
-      regex: ([^:]+)(?::\d+)?
-      targetLabel: ip_address
-      replacement: $1
-      action: replace
