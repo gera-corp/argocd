@@ -126,6 +126,10 @@ spec:
                   regex: Pending|Succeeded|Failed|Completed
                   source_labels:
                   - __meta_kubernetes_pod_phase
+                - source_labels: ['__address__']
+                  target_label: 'ip_address'
+                  regex: '(.*):.*'
+                  replacement: '$1'
         grafana:
           enabled: true
           sidecar:
