@@ -83,54 +83,45 @@ spec:
                     requests:
                       storage: 32Gi
             additionalScrapeConfigs:
-              - honor_labels: true
-                job_name: kubernetes-pods
+              - job_name: 'pods'
                 kubernetes_sd_configs:
                 - role: pod
                 relabel_configs:
-                - action: keep
-                  regex: true
-                  source_labels:
-                  - __meta_kubernetes_pod_annotation_prometheus_io_scrape
-                - action: replace
-                  regex: (https?)
-                  source_labels:
-                  - __meta_kubernetes_pod_annotation_prometheus_io_scheme
-                  target_label: __scheme__
-                - action: replace
+                - source_labels:
+                    [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                  separator: ;
+                  regex: 'true'
+                  replacement: $1
+                  action: keep
+                - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                  separator: ;
                   regex: (.+)
-                  source_labels:
-                  - __meta_kubernetes_pod_annotation_prometheus_io_path
                   target_label: __metrics_path__
-                - action: replace
-                  regex: (.+?)(?::\d+)?;(\d+)
-                  replacement: $1:$2
-                  source_labels:
-                  - __address__
-                  - __meta_kubernetes_pod_annotation_prometheus_io_port
+                  replacement: $1
+                  action: replace
+                - source_labels:
+                    [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+                  separator: ;
+                  regex: ([^:]+)(?::\d+)?;(\d+)
                   target_label: __address__
-                - action: labelmap
-                  regex: __meta_kubernetes_pod_annotation_prometheus_io_param_(.+)
-                  replacement: __param_$1
-                - action: labelmap
+                  replacement: $1:$2
+                  action: replace
+                - separator: ;
                   regex: __meta_kubernetes_pod_label_(.+)
-                - action: replace
-                  source_labels:
-                  - __meta_kubernetes_namespace
-                  target_label: namespace
-                - action: replace
-                  source_labels:
-                  - __meta_kubernetes_pod_name
-                  target_label: pod
-                - action: drop
-                  regex: Pending|Succeeded|Failed|Completed
-                  source_labels:
-                  - __meta_kubernetes_pod_phase
-                - action: replace
-                  source_labels: ['__address__']
-                  target_label: 'ip_address'
-                  regex: '(.*):.*'
-                  replacement: '$1'
+                  replacement: $1
+                  action: labelmap
+                - source_labels: [__meta_kubernetes_namespace]
+                  separator: ;
+                  regex: (.*)
+                  target_label: kubernetes_namespace
+                  replacement: $1
+                  action: replace
+                - source_labels: [__meta_kubernetes_pod_name]
+                  separator: ;
+                  regex: (.*)
+                  target_label: kubernetes_pod_name
+                  replacement: $1
+                  action: replace
         grafana:
           enabled: true
           sidecar:
