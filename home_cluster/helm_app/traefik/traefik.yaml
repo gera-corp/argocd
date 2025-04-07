@@ -19,7 +19,7 @@ spec:
   source:
     repoURL: 'https://helm.traefik.io/traefik'
     chart: traefik
-    targetRevision: 34.*
+    targetRevision: 35.*
     helm:
       skipCrds: false
       valuesObject:
@@ -43,4 +43,3 @@ metadata:
 spec:
   defaultCertificate:
     secretName: letsencrypt-cloud-production-tls
-
