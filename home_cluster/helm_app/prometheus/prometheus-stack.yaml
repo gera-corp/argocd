@@ -83,7 +83,7 @@ spec:
                 memory: 4Gi
               requests:
                 cpu: 100m
-                memory: 1024Mi
+                memory: 1Gi
             ruleSelectorNilUsesHelmValues: false
             serviceMonitorSelectorNilUsesHelmValues: false
             podMonitorSelectorNilUsesHelmValues: false
