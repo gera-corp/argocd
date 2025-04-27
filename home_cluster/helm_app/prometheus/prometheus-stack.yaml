@@ -58,6 +58,14 @@ spec:
             InfoInhibitor: true
             KubeMemoryOvercommit: true
             KubeCPUOvercommit: true
+        prometheusOperator:
+          admissionWebhooks:
+            mutatingWebhookConfiguration:
+              annotations:
+                argocd.argoproj.io/hook: PreSync
+            validatingWebhookConfiguration:
+              annotations:
+                argocd.argoproj.io/hook: PreSync
         prometheus:
           enabled: true
           prometheusSpec:
