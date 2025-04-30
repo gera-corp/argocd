@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: memory-alerting
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    app.kubernetes.io/instance: kube-prometheus-stack
+spec:
+  groups:
+  - name: oomkills
+    rules:
+    - alert: OomKillEvents
+      annotations:
+        description: The pod {{$labels.pod}} in {{$labels.namespace}} was recently OOMkilled.
+        summary: Pod was OOMKilled
+      expr: sum by(namespace, pod) (kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}) > 0
+      for: 30s
+      labels:
+        issue: The pod {{$labels.pod}} in {{$labels.namespace}} was recently OOMkilled.
+        severity: critical
