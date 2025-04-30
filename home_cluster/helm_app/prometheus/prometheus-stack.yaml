@@ -65,11 +65,11 @@ spec:
             enabled: true
             annotations:
               argocd.argoproj.io/hook: PreSync
-              argocd.argoproj.io/hook-delete-policy: HookFailed
+              argocd.argoproj.io/hook-delete-policy: HookSucceeded
             patch:
               annotations:
                 argocd.argoproj.io/hook: PreSync
-                argocd.argoproj.io/hook-delete-policy: HookFailed
+                argocd.argoproj.io/hook-delete-policy: HookSucceeded
             mutatingWebhookConfiguration:
               annotations:
                 argocd.argoproj.io/hook: PreSync
