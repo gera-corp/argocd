@@ -30,7 +30,7 @@ spec:
           #   "nginx" "-g" "daemon off;" &
           #   while true; do /usr/local/bin/python /app/pynod/update.py; sleep 3h; done
           ports:
-            - containerPort: 80
+            - containerPort: 22221
               name: http-nod32up
               protocol: TCP
           # readinessProbe:
