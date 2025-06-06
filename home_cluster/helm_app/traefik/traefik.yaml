@@ -19,7 +19,7 @@ spec:
   source:
     repoURL: 'https://helm.traefik.io/traefik'
     chart: traefik
-    targetRevision: 35.*
+    targetRevision: 36.*
     helm:
       skipCrds: false
       valuesObject:
