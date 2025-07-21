@@ -14,6 +14,8 @@ spec:
     metadata:
       labels:
         app: nod32update
+      annotations:
+        secrets-reloader.security.bank-vaults.io/reload-on-secret-change: "true"
     spec:
       terminationGracePeriodSeconds: 10
       securityContext:
@@ -22,8 +24,12 @@ spec:
           - 0
       containers:
         - name: nod32update
-          image: gerain/nod32py:v1.0.4-2
+          image: gerain/nod32py:v1.0.4-3
           imagePullPolicy: IfNotPresent
+          command:
+            ['sh', '-c']
+          args:
+            ["envsubst < nod32ms_template.conf > nod32ms.conf && nginx -g 'daemon off;' & while true; do /usr/local/bin/python /app/pynod/update.py; sleep 3h; done"]
           ports:
             - containerPort: 22221
               name: http-nod32up
@@ -46,6 +52,11 @@ spec:
           #   tcpSocket:
           #     port: 3000
           #   timeoutSeconds: 1
+          env:
+          - name: mirror_user
+            value: vault:secret/data/nod32update#mirror_user
+          - name: mirror_password
+            value: vault:secret/data/nod32update#mirror_password
           resources:
             limits:
               memory: 512Mi
@@ -54,11 +65,11 @@ spec:
               memory: 256Mi
               cpu: "0.2"
           volumeMounts:
-            - mountPath: /var/www/nod32mirror
-              name: nod32update-base-pv
+            - name: nod32update-base-pv
+              mountPath: /var/www/nod32mirror
             - name: nod32update-config-volume
-              mountPath: /app/pynod/nod32ms.conf
-              subPath: nod32ms.conf
+              mountPath: /app/pynod/nod32ms_template.conf
+              subPath: nod32config.yaml
       volumes:
         - name: nod32update-base-pv
           persistentVolumeClaim:
