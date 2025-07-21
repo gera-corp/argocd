@@ -24,11 +24,6 @@ spec:
         - name: nod32update
           image: gerain/nod32py:v1.0.4-2
           imagePullPolicy: IfNotPresent
-          # command: ["sh", "-c"]
-          # args:
-          # - |
-          #   "nginx" "-g" "daemon off;" &
-          #   while true; do /usr/local/bin/python /app/pynod/update.py; sleep 3h; done
           ports:
             - containerPort: 22221
               name: http-nod32up
@@ -61,15 +56,16 @@ spec:
           volumeMounts:
             - mountPath: /var/www/nod32mirror
               name: nod32update-base-pv
-            # - mountPath: /nod32update/log
-            #   name: nod32update-logs-pv
+            - name: nod32update-config-volume
+              mountPath: /app/pynod/nod32ms.conf
+              subPath: nod32ms.conf
       volumes:
         - name: nod32update-base-pv
           persistentVolumeClaim:
             claimName: nod32update-base-pv
-        # - name: nod32update-logs-pv
-        #   persistentVolumeClaim:
-        #     claimName: nod32update-logs-pv
+        - name: nod32update-config-volume
+          configMap:
+            name: nod32update-config
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
