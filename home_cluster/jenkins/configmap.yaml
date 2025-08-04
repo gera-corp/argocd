@@ -29,7 +29,7 @@ data:
           namespace: "jenkins"
           templates:
           - containers:
-            - image: "docker-registry.local.geracorp.work/tools/jenkins-agent:v1.1.0"
+            - image: "docker-registry.local.geracorp.work/tools/jenkins-agent:v1.1.1"
               livenessProbe:
                 failureThreshold: 0
                 initialDelaySeconds: 0
