@@ -15,7 +15,6 @@ spec:
         description: The pod {{$labels.pod}} in {{$labels.namespace}} was recently OOMkilled.
         summary: Pod was OOMKilled
       expr: increase(kube_pod_container_status_restarts_total{container!="", pod!=""}[5m]) * on(namespace, pod, container) group_left(reason) kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} >= 1
-      for: 10s
       labels:
         issue: The pod {{$labels.pod}} in {{$labels.namespace}} was recently OOMkilled.
         severity: critical
