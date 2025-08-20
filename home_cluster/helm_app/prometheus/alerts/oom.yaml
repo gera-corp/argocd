@@ -14,7 +14,7 @@ spec:
       annotations:
         description: The pod {{$labels.pod}} in {{$labels.namespace}} was recently OOMkilled.
         summary: Pod was OOMKilled
-      expr: sum_over_time(kube_pod_container_status_terminated_reason{reason="OOMKilled"}[5m]) > 0
+      expr: increase(kube_pod_container_status_restarts_total{container!="", pod!=""}[5m]) * on(namespace, pod, container) group_left(reason) kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} >= 1
       for: 10s
       labels:
         issue: The pod {{$labels.pod}} in {{$labels.namespace}} was recently OOMkilled.
