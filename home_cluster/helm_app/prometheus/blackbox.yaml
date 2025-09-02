@@ -19,7 +19,7 @@ spec:
   source:
     repoURL: 'https://prometheus-community.github.io/helm-charts'
     chart: prometheus-blackbox-exporter
-    targetRevision: 9.*
+    targetRevision: 11.*
     helm:
       skipCrds: false
       valuesObject:
