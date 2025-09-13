@@ -23,9 +23,9 @@ spec:
     helm:
       skipCrds: false
       valuesObject:
-        # extraEnvFrom:
-        # - secretRef:
-        #     name: apt-telegram-token
+        extraEnvFrom:
+        - secretRef:
+            name: apt-telegram-token
         selfMonitor:
           enabled: true
         serviceMonitor:
@@ -43,6 +43,6 @@ spec:
             - name: cloud-biostal
               url: https://cloud.biostal.ru
               hostname: cloud.biostal.ru
-            # - name: telegram-api
-            #   url: https://api.telegram.org/bot${vault:secret/data/alertmanager#telegram_token}/getMe
-            #   hostname: api.telegram.org
+            - name: telegram-api
+              url: ${TGBOT}
+              hostname: api.telegram.org
