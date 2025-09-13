@@ -23,9 +23,9 @@ spec:
     helm:
       skipCrds: false
       valuesObject:
-        extraEnv:
-          - name: TGTOKEN
-            value: vault:secret/data/alertmanager#telegram_token
+        extraEnvFrom:
+        - secretRef:
+            name: secretOne
         selfMonitor:
           enabled: true
         serviceMonitor:
