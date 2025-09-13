@@ -26,26 +26,26 @@ spec:
         severity: warning
       annotations:
         summary: "Blackbox SSL certificate will expire soon (instance {{ $labels.target }})"
-        message: "SSL certificate expires in 30 days VALUE = {{ $value }}"
-        grafana: "{{ grafana_url }}&var-targets={{ $labels.target }}"
-        # prometheus: "{{ prometheus_url }}/graph?g0.expr=probe_ssl_earliest_cert_expiry+-+time%28%29+%3C+86400+%2A+30&g0.tab=1"
-    # - alert: BlackboxSslCertificateWillExpireSoon
-    #   expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 3
-    #   for: 5m
-    #   labels:
-    #     severity: error
-    #   annotations:
-    #     summary: "Blackbox SSL certificate will expire soon (instance {{ $labels.target }})"
-    #     message: "SSL certificate expires in 3 days\n  VALUE = {{ $value }}"
+        message: "SSL certificate expires in 30 days\n  VALUE = {{ $value }}"
+    #     grafana: "{{ grafana_url }}&var-targets={{ $labels.target }}"
+    #     prometheus: "{{ prometheus_url }}/graph?g0.expr=probe_ssl_earliest_cert_expiry+-+time%28%29+%3C+86400+%2A+30&g0.tab=1"
+    - alert: BlackboxSslCertificateWillExpireSoon
+      expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 3
+      for: 5m
+      labels:
+        severity: error
+      annotations:
+        summary: "Blackbox SSL certificate will expire soon (instance {{ $labels.target }})"
+        message: "SSL certificate expires in 3 days\n  VALUE = {{ $value }}"
     #     grafana: "{{ grafana_url }}&var-targets={{ $labels.target }}"
     #     prometheus: "{{ prometheus_url }}/graph?g0.expr=probe_ssl_earliest_cert_expiry+-+time%28%29+%3C+86400+%2A+3&g0.tab=1"
-    # - alert: BlackboxSslCertificateExpired
-    #   expr: probe_ssl_earliest_cert_expiry - time() <= 0
-    #   for: 5m
-    #   labels:
-    #     severity: error
-    #   annotations:
-    #     summary: "Blackbox SSL certificate expired (instance {{ $labels.target }})"
-    #     message: "SSL certificate has expired already\n  VALUE = {{ $value }}"
+    - alert: BlackboxSslCertificateExpired
+      expr: probe_ssl_earliest_cert_expiry - time() <= 0
+      for: 5m
+      labels:
+        severity: error
+      annotations:
+        summary: "Blackbox SSL certificate expired (instance {{ $labels.target }})"
+        message: "SSL certificate has expired already\n  VALUE = {{ $value }}"
     #     grafana: "{{ grafana_url }}&var-targets={{ $labels.target }}"
     #     prometheus: "{{ prometheus_url }}/graph?g0.expr=probe_ssl_earliest_cert_expiry+-+time%28%29+%3C%3D+0&g0.tab=1"
