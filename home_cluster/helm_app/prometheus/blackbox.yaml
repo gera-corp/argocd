@@ -23,9 +23,9 @@ spec:
     helm:
       skipCrds: false
       valuesObject:
-        extraEnvFrom:
-        - secretRef:
-            name: secretOne
+        # extraEnvFrom:
+        # - secretRef:
+        #     name: apt-telegram-token
         selfMonitor:
           enabled: true
         serviceMonitor:
