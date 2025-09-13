@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: blackbox-exporter
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    app.kubernetes.io/instance: kube-prometheus-stack
+spec:
+  groups:
+    - name: BlackboxMonitoring
+      rules:
+      - alert: TargetDown
+        expr: probe_success == 0
+        for: 5m
+        labels:
+          severity: warning
+          unique_id: "{{ $labels.instance }}"
+          type: cash-service
+          environment: stage
+        annotations:
+          summary: "Target {{ $labels.instance }} is down"
+          description: "The target {{ $labels.instance }} has been unreachable for more than 5 minutes."
