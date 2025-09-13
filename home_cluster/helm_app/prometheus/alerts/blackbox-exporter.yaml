@@ -27,8 +27,8 @@ spec:
       annotations:
         summary: "Blackbox SSL certificate will expire soon (instance {{ $labels.target }})"
         message: "SSL certificate expires in 30 days VALUE = {{ $value }}"
-        # grafana: "{{ grafana_url }}&var-targets={{ $labels.target }}"
-        prometheus: "{{ prometheus_url }}/graph?g0.expr=probe_ssl_earliest_cert_expiry+-+time%28%29+%3C+86400+%2A+30&g0.tab=1"
+        grafana: "{{ grafana_url }}&var-targets={{ $labels.target }}"
+        # prometheus: "{{ prometheus_url }}/graph?g0.expr=probe_ssl_earliest_cert_expiry+-+time%28%29+%3C+86400+%2A+30&g0.tab=1"
     # - alert: BlackboxSslCertificateWillExpireSoon
     #   expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 3
     #   for: 5m
