@@ -79,10 +79,6 @@ spec:
         prometheus:
           enabled: true
           prometheusSpec:
-            additionalScrapeConfigsSecret:
-              enabled: true
-              name: apt-telegram-scrape-config
-              key: asc.yaml
             replicas: 1
             resources:
               limits:
