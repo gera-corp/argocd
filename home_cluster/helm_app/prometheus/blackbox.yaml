@@ -26,8 +26,10 @@ spec:
         # extraEnvFrom:
         # - secretRef:
         #     name: apt-telegram-token
-        selfMonitor:
-          enabled: true
+        # secretConfig: true
+        # config:
+        #   target:
+        #     - https://api.telegram.org/bot${vault:secret/data/alertmanager#telegram_token}/getMe  # Ключ в plain text :(
         serviceMonitor:
           enabled: true
           targets:
