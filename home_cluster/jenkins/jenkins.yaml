@@ -21,7 +21,7 @@ spec:
       serviceAccountName: jenkins-admin
       initContainers:
       - name: jenkins-install-plugin
-        image: jenkins/jenkins:2.516.2-lts-jdk21
+        image: jenkins/jenkins:2.516.3-lts-jdk21
         imagePullPolicy: IfNotPresent
         command: ["jenkins-plugin-cli"]
         args: ["--plugins", "dark-theme ansicolor pipeline-stage-view timestamper blueocean configuration-as-code git github hashicorp-vault-plugin job-dsl uno-choice kubernetes ldap matrix-auth", "--plugin-download-directory", "/var/jenkins_home/plugins/"]
@@ -37,7 +37,7 @@ spec:
           name: jenkins-pv
       containers:
       - name: jenkins
-        image: jenkins/jenkins:2.516.2-lts-jdk21
+        image: jenkins/jenkins:2.516.3-lts-jdk21
         imagePullPolicy: IfNotPresent
         env:
         - name: JAVA_OPTS
