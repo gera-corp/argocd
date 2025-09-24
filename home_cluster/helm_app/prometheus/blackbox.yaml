@@ -23,13 +23,6 @@ spec:
     helm:
       skipCrds: false
       valuesObject:
-        # extraEnvFrom:
-        # - secretRef:
-        #     name: apt-telegram-token
-        # secretConfig: true
-        # config:
-        #   target:
-        #     - https://api.telegram.org/bot${vault:secret/data/alertmanager#telegram_token}/getMe  # Ключ в plain text :(
         serviceMonitor:
           enabled: true
           targets:
@@ -45,6 +38,21 @@ spec:
             - name: cloud-biostal
               url: https://cloud.biostal.ru
               hostname: cloud.biostal.ru
-            # - name: telegram-api
-            #   url: ${TGBOT}
-            #   hostname: api.telegram.org
+            - name: telegram-api
+              url: https://api.telegram.org/bot${vault:secret/data/alertmanager#telegram_token}/getMe
+              hostname: api.telegram.org
+              additionalMetricsRelabels:
+              - action: replace
+                replacement: https://api.telegram.org
+                sourceLabels:
+                  - instance
+                targetLabel: instance
+            # - name: example                    # Human readable URL that will appear in Prometheus / AlertManager
+            #   url: http://example.com/healthz  # The URL that blackbox will scrape
+            #   hostname: example.com            # HTTP probes can accept an additional `hostname` parameter that will set `Host` header and TLS SNI
+            #   labels: {}                       # Map of labels for ServiceMonitor. Overrides value set in `defaults`
+            #   interval: 60s                    # Scraping interval. Overrides value set in `defaults`
+            #   scrapeTimeout: 60s               # Scrape timeout. Overrides value set in `defaults`
+            #   module: http_2xx                 # Module used for scraping. Overrides value set in `defaults`
+            #   additionalMetricsRelabels: {}    # Map of metric labels and values to add
+            #   additionalRelabeling: []         # List of metric relabeling actions to run
