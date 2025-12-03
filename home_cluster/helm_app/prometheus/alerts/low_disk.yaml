@@ -19,15 +19,14 @@ spec:
         labels:
           severity: warning
 
-      - alert: "HostOutOfDiskSpace"
+      - alert: HostOutOfDiskSpace
         annotations:
-          summary: "Host out of disk space (instance {{ $labels.instance }})"
-          description: "description: Disk is almost full (< 10% left)\n  VALUE = {{ $value }}"
-          value: "{{ $value }}"
+          summary: Host out of disk space (instance {{ $labels.instance }})
+          description: Disk is almost full (< 10% left)\n  VALUE = {{ $value }}
         expr: (node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes < 10 and ON (instance, device, mountpoint) node_filesystem_readonly == 0
         for: 2m
         labels:
-          severity: critical
+          severity: warning
 
       - alert: HostOutOfInodes
         annotations:
