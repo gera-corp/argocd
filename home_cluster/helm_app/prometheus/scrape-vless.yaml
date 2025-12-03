@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: v2ray
+  namespace: monitoring
+  labels:
+    prometheus: v2ray
+    release: prom
+spec:
+  scheme: HTTP
+  metricsPath: /scrape
+  staticConfigs:
+    - labels:
+        job: v2ray
+      targets:
+        - trol.geracorp.org:9550

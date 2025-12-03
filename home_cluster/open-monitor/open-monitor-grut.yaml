@@ -1,0 +1,141 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: open-monitor
+  name: open-monitor
+  namespace: grut
+spec:
+  selector:
+    matchLabels:
+      app: open-monitor
+  template:
+    metadata:
+      labels:
+        app: open-monitor
+    spec:
+      securityContext:
+        fsGroup: 472
+        supplementalGroups:
+          - 0
+      containers:
+        - name: open-monitor
+          image: gerain/open-monitor:09.11.2025-grut
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: OPENVPNMONITOR_DEFAULT_DATETIMEFORMAT
+              value: "%%d/%%m/%%Y"
+            - name: OPENVPNMONITOR_DEFAULT_MAPSHEIGHT
+              value: "500"
+            - name: OPENVPNMONITOR_SITES_0_PORT
+              value: "5555"
+            - name: OPENVPNMONITOR_DEFAULT_MAPS
+              value: "True"
+            - name: OPENVPNMONITOR_SITES_0_SHOWDISCONNECT
+              value: "False"
+            - name: OPENVPNMONITOR_SITES_0_HOST
+              value: "37.252.6.94"
+            - name: OPENVPNMONITOR_SITES_0_NAME
+              value: "BlueVPS"
+            - name: OPENVPNMONITOR_DEFAULT_LATITUDE
+              value: "-37"
+            - name: OPENVPNMONITOR_DEFAULT_LONGITUDE
+              value: "144"
+            - name: OPENVPNMONITOR_DEFAULT_SITE
+              value: "Gera"
+            - name: OPENVPNMONITOR_SITES_0_ALIAS
+              value: "TCP"
+          ports:
+            - containerPort: 80
+              name: http-opmon
+              protocol: TCP
+          # readinessProbe:
+          #   failureThreshold: 3
+          #   httpGet:
+          #     path: /index.html
+          #     port: 80
+          #     scheme: HTTP
+          #   initialDelaySeconds: 10
+          #   periodSeconds: 30
+          #   successThreshold: 1
+          #   timeoutSeconds: 2
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: http-opmon
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 2
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: "1"
+            requests:
+              memory: 256Mi
+              cpu: "0.2"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-monitor
+  namespace: grut
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: http-opmon
+  selector:
+    app: open-monitor
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: open-monitor-cert
+  namespace: grut
+spec:
+  commonName: open-monitor.geracorp.ru
+  secretName: open-monitor-cert
+  dnsNames:
+    - open-monitor.geracorp.ru
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-prod
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: open-monitor-tls
+  namespace: grut
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`open-monitor-grut.local.geracorp.work`)
+    kind: Rule
+    middlewares:
+    - name: open-monitor-auth
+    services:
+    - name: open-monitor
+      port: 80
+  tls:
+    secretName: open-monitor-cert
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: open-monitor-auth
+  namespace: grut
+spec:
+  basicAuth:
+    secret: open-monitor-secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: open-monitor-secret
+  namespace: grut
+stringData:
+  users: vault:secret/data/open-monitor-grut#users
