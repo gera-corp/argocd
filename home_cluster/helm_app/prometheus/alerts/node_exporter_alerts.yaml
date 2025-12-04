@@ -1,14 +1,14 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: node_exporter_alerts
+  name: node-exporter-alerts
   namespace: monitoring
   labels:
     app: kube-prometheus-stack
     app.kubernetes.io/instance: kube-prometheus-stack
 spec:
   groups:
-  - name: node_exporter_alerts
+  - name: node-exporter-alerts
     rules:
       - alert: HostOutOfMemory
         annotations:
