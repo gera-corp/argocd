@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: release-bot
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-bot
+  namespace: release-bot
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: release-bot
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: release-bot
+    spec:
+      serviceAccountName: default
+      containers:
+      - name: release-bot
+        image: ghcr.io/janisv/release-bot:0.8.0
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: "750m"
+          requests:
+            memory: 256Mi
+            cpu: "500m"
+        env:
+        - name: TELEGRAM_BOT_TOKEN
+          value: vault:secret/data/release-bot#TELEGRAM_BOT_TOKEN
+        - name: GITHUB_TOKEN
+          value: vault:secret/data/release-bot#GITHUB_TOKEN
+        volumeMounts:
+        - name: release-bot-pv
+          mountPath: /app/data
+      volumes:
+      - name: release-bot-pv
+        persistentVolumeClaim:
+          claimName: release-bot-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: release-bot-pv
+  namespace: release-bot
+spec:
+  storageClassName: openmediavault-nfs-client
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50M
