@@ -46,7 +46,7 @@ spec:
           - 0
       containers:
         - name: docker-registry-ui
-          image: joxit/docker-registry-ui:2.5.7
+          image: joxit/docker-registry-ui:2.6.0
           imagePullPolicy: IfNotPresent
           env:
             - name: REGISTRY_URL
