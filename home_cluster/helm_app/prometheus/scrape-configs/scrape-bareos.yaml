@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: bareos
+  namespace: monitoring
+  labels:
+    prometheus: bareos
+    release: prom
+spec:
+  scheme: HTTP
+  metricsPath: /metrics
+  staticConfigs:
+    - labels:
+        job: bareos
+      targets:
+        - 192.168.1.53:9100
