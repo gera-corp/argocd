@@ -1,0 +1,57 @@
+# Application manifest
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openclaw
+spec:
+  destination:
+    name: in-cluster
+    namespace: openclaw
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  ignoreDifferences:
+    - group: ""
+      kind: ConfigMap
+      name: openclaw
+      jsonPointers:
+        - /data
+  source:
+    repoURL: 'https://serhanekicii.github.io/openclaw-helm'
+    chart: openclaw
+    targetRevision: 1.5.*
+    helm:
+      skipCrds: false
+      valuesObject:
+        app-template:
+          defaultPodOptions:
+            nodeSelector:
+              kubernetes.io/arch: "arm64"
+            tolerations:
+              - key: "dedicated"
+                operator: "Equal"
+                value: "arm64"
+                effect: "NoSchedule"
+          controllers:
+            main:
+              containers:
+                main:
+                  envFrom:
+                    - secretRef:
+                        name: openclaw-env-secret
+                  resources:
+                    requests:
+                      # @schema type:string;default:200m
+                      cpu: 200m
+                      # @schema type:string;default:512Mi
+                      memory: 512Mi
+                    limits:
+                      # @schema type:string;default:2000m
+                      cpu: 2000m
+                      # @schema type:string;default:2Gi
+                      memory: 4Gi
