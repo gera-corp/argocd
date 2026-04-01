@@ -16,9 +16,9 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
   ignoreDifferences:
-    - group: ""
+    - group: "*"
       kind: ConfigMap
-      name: openclaw
+      name: openclaw-config
       jsonPointers:
         - /data
   source:
