@@ -31,14 +31,14 @@ spec:
         app-template:
           # openclawVersion: "2026.4.23"
           # chromiumVersion: "148.0.7778.56"
-          # defaultPodOptions:
-          #   nodeSelector:
-          #     kubernetes.io/arch: "arm64"
-          #   tolerations:
-          #     - key: "dedicated"
-          #       operator: "Equal"
-          #       value: "arm64"
-          #       effect: "NoSchedule"
+          defaultPodOptions:
+            nodeSelector:
+              kubernetes.io/arch: "arm64"
+            tolerations:
+              - key: "dedicated"
+                operator: "Equal"
+                value: "arm64"
+                effect: "NoSchedule"
           controllers:
             main:
               containers:
