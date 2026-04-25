@@ -15,12 +15,6 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-  ignoreDifferences:
-    - group: "*"
-      kind: ConfigMap
-      name: openclaw-config
-      jsonPointers:
-        - /data
   source:
     repoURL: 'https://serhanekicii.github.io/openclaw-helm'
     chart: openclaw
@@ -29,6 +23,12 @@ spec:
       skipCrds: false
       valuesObject:
         app-template:
+          configMode: merge
+          configMaps:
+            config:
+              data:
+                openclaw.json: |
+                  {}
           defaultPodOptions:
             nodeSelector:
               kubernetes.io/arch: "arm64"
