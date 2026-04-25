@@ -29,14 +29,6 @@ spec:
               data:
                 openclaw.json: |
                   {}
-          defaultPodOptions:
-            nodeSelector:
-              kubernetes.io/arch: "arm64"
-            tolerations:
-              - key: "dedicated"
-                operator: "Equal"
-                value: "arm64"
-                effect: "NoSchedule"
           controllers:
             main:
               containers:
