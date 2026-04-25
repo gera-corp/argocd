@@ -28,7 +28,32 @@ spec:
             config:
               data:
                 openclaw.json: |
-                  {}
+                  {
+                    "gateway": {
+                      "port": 18789,
+                      "mode": "local"
+                    },
+                    "browser": {
+                      "enabled": true,
+                      "defaultProfile": "default",
+                      "profiles": {
+                        "default": {
+                          "cdpUrl": "http://localhost:9222"
+                        }
+                      }
+                    },
+                    "agents": {
+                      "defaults": {
+                        "model": {
+                          "primary": "anthropic/claude-opus-4-7"
+                        },
+                        "workspace": "/home/node/.openclaw/workspace"
+                      }
+                    },
+                    "logging": {
+                      "level": "info"
+                    }
+                  }
           controllers:
             main:
               containers:
