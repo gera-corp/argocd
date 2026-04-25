@@ -15,6 +15,12 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+  ignoreDifferences:
+    - group: "*"
+      kind: ConfigMap
+      name: openclaw-config
+      jsonPointers:
+        - /data
   source:
     repoURL: 'https://serhanekicii.github.io/openclaw-helm'
     chart: openclaw
@@ -23,37 +29,14 @@ spec:
       skipCrds: false
       valuesObject:
         app-template:
-          configMode: merge
-          configMaps:
-            config:
-              data:
-                openclaw.json: |
-                  {
-                    "gateway": {
-                      "port": 18789,
-                      "mode": "local"
-                    },
-                    "browser": {
-                      "enabled": true,
-                      "defaultProfile": "default",
-                      "profiles": {
-                        "default": {
-                          "cdpUrl": "http://localhost:9222"
-                        }
-                      }
-                    },
-                    "agents": {
-                      "defaults": {
-                        "model": {
-                          "primary": "anthropic/claude-opus-4-7"
-                        },
-                        "workspace": "/home/node/.openclaw/workspace"
-                      }
-                    },
-                    "logging": {
-                      "level": "info"
-                    }
-                  }
+          # defaultPodOptions:
+          #   nodeSelector:
+          #     kubernetes.io/arch: "arm64"
+          #   tolerations:
+          #     - key: "dedicated"
+          #       operator: "Equal"
+          #       value: "arm64"
+          #       effect: "NoSchedule"
           controllers:
             main:
               containers:
