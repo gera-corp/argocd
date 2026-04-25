@@ -43,6 +43,9 @@ spec:
             main:
               containers:
                 main:
+                  env:
+                    HOME: /home/node/.openclaw
+                    NPM_CONFIG_CACHE: /home/node/.openclaw/.npm
                   envFrom:
                     - secretRef:
                         name: openclaw-env-secret
