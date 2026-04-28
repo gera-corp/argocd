@@ -29,7 +29,7 @@ spec:
       skipCrds: false
       valuesObject:
         app-template:
-          openclawVersion: "2026.4.26"
+          openclawVersion: "2026.4.23"
           # chromiumVersion: "148.0.7778.56"
           defaultPodOptions:
             nodeSelector:
