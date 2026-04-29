@@ -123,6 +123,8 @@ data:
         disableUserThemes: true
         theme: "darkSystem"
     unclassified:
+      ansiColorBuildWrapper:
+        globalColorMapName: "xterm"
       hashicorpVault:
         configuration:
           disableChildPoliciesOverride: false
