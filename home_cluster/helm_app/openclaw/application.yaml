@@ -40,28 +40,30 @@ spec:
                 effect: "NoSchedule"
           controllers:
             main:
-              initContainers:
-                # Fixes PVC root ownership (root:users → node:node) so the main
-                # container's exec tool can chmod its workspace. Idempotent.
-                fix-perms:
-                  image:
-                    repository: busybox
-                    tag: "1.37"
-                  command:
-                    - sh
-                    - -c
-                    - chown 1000:1000 /home/node/.openclaw && chmod 700 /home/node/.openclaw
-                  securityContext:
-                    runAsUser: 0
-                    runAsNonRoot: false
-                    readOnlyRootFilesystem: true
-                    allowPrivilegeEscalation: false
-                    capabilities:
-                      add:
-                        - CHOWN
-                        - FOWNER
-                      drop:
-                        - ALL
+              # Fixes PVC root ownership (root:users → node:node) so the main
+              # container's exec tool can chmod its workspace. Idempotent —
+              # keep commented unless PVC is recreated/restored and the chown
+              # is lost again (see persistence.data.advancedMounts below).
+              # initContainers:
+              #   fix-perms:
+              #     image:
+              #       repository: busybox
+              #       tag: "1.37"
+              #     command:
+              #       - sh
+              #       - -c
+              #       - chown 1000:1000 /home/node/.openclaw && chmod 700 /home/node/.openclaw
+              #     securityContext:
+              #       runAsUser: 0
+              #       runAsNonRoot: false
+              #       readOnlyRootFilesystem: true
+              #       allowPrivilegeEscalation: false
+              #       capabilities:
+              #         add:
+              #           - CHOWN
+              #           - FOWNER
+              #         drop:
+              #           - ALL
               containers:
                 main:
                   env:
@@ -80,9 +82,9 @@ spec:
                       cpu: 2000m
                       # @schema type:string;default:2Gi
                       memory: 4Gi
-          persistence:
-            data:
-              advancedMounts:
-                main:
-                  fix-perms:
-                    - path: /home/node/.openclaw
+          # persistence:
+          #   data:
+          #     advancedMounts:
+          #       main:
+          #         fix-perms:
+          #           - path: /home/node/.openclaw
