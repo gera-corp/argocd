@@ -88,6 +88,7 @@ spec:
                 send_resolved: true
                 http_config:
                   authorization:
+                    type: Bearer
                     credentials: '547b602bd7d68e58e9b802d7f28c73fc5ed7519c1366b804ac5ffd37152186c6'
             templates:
             - '/etc/alertmanager/config/*.tmpl'
