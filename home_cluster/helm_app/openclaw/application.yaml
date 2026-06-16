@@ -29,7 +29,7 @@ spec:
       skipCrds: false
       valuesObject:
         app-template:
-          openclawVersion: "2026.6.5"
+          openclawVersion: "2026.6.8"
           defaultPodOptions:
             nodeSelector:
               kubernetes.io/arch: "arm64"
