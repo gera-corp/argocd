@@ -23,6 +23,8 @@ spec:
     helm:
       skipCrds: false
       valuesObject:
+        deployment:
+          replicas: 2
         additionalArguments:
           - "--serversTransport.insecureSkipVerify=true"
           - "--entrypoints.web.transport.respondingTimeouts.readTimeout=0s" # fix issue for upload large file https://github.com/immich-app/immich/discussions/8872
