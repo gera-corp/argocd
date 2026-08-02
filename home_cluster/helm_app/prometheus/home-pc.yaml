@@ -14,6 +14,7 @@ spec:
         job: home-pc
       targets:
         - 10.0.0.11:4445
+        - 192.168.100.53:4445
   relabelings:
     - sourceLabels: [__address__]
       regex: ([^:]+)(?::\d+)?
