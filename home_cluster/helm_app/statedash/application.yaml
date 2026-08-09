@@ -1,0 +1,44 @@
+# Application manifest
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: statedash
+spec:
+  destination:
+    name: in-cluster
+    namespace: statedash
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  source:
+    # OCI chart, published from the same repository as the image
+    repoURL: ghcr.io/gera-corp-org/charts
+    chart: statedash
+    targetRevision: 0.1.*
+    helm:
+      valuesObject:
+        opnsense:
+          url: https://opnsense.geracorp.ru:4443
+          interfaces: lan,wireguard
+          # the certificate is issued for the hostname above, which resolves on
+          # the LAN; set to false if it stops matching
+          tlsVerify: true
+          # credentials come from secrets.yaml beside this file, which the
+          # bank-vaults webhook fills in from Vault
+          existingSecret: statedash-opnsense
+
+        persistence:
+          enabled: true
+          size: 64Mi
+
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
