@@ -32,6 +32,26 @@ spec:
           # bank-vaults webhook fills in from Vault
           existingSecret: statedash-opnsense
 
+        # Internal name only: the dashboard shows the whole network — hosts,
+        # addresses, who talks to whom — so it has no business on a publicly
+        # resolvable one. The certificate comes from the Cloudflare DNS-01
+        # issuer, which is what lets a name that never answers from the
+        # internet still get a real certificate.
+        ingress:
+          enabled: true
+          className: traefik
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-cloud-production
+          hosts:
+            - host: statedash.local.geracorp.work
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - statedash.local.geracorp.work
+              secretName: statedash-tls
+
         persistence:
           enabled: true
           size: 64Mi
