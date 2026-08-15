@@ -1,0 +1,74 @@
+# The public demonstration at demo.statedash.geracorp.ru — the same chart as the
+# real installation next door, but talking to nobody.
+#
+# It needs no Secret and no namespace of its own declared here: there is no
+# credential to hold, so CreateNamespace does the rest.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: statedash-demo
+spec:
+  destination:
+    name: in-cluster
+    namespace: statedash-demo
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  source:
+    repoURL: ghcr.io/gera-corp-org/charts
+    chart: statedash
+    # Follows the major, as the real installation does. A demonstration running
+    # a release behind is worse than useless — it is what people judge the
+    # project by.
+    targetRevision: 1.*
+    helm:
+      valuesObject:
+        # No firewall: everything on show is invented. opnsense.url stays empty
+        # deliberately — there is nothing here that could reach one.
+        mock: true
+        # Enough devices that paging and the spread on the chart mean something;
+        # a dozen would show neither.
+        mockHosts: 120
+        # Everything visible, nothing writable. Without this the first visitor
+        # can set a password on an instance that has none and lock out the rest,
+        # and the settings are shared by everyone looking.
+        demo: true
+
+        # Nothing is worth keeping: settings.json only holds what a visitor
+        # cannot change anyway, and a restart should give the next person a
+        # clean instance rather than yesterday's fiddling.
+        persistence:
+          enabled: false
+
+        # A public name, unlike the real installation's, which is deliberately
+        # internal. The certificate comes from the HTTP-01 issuer the other
+        # public sites here use — the host answers from the internet, so the
+        # challenge reaches it and no DNS provider is involved.
+        ingress:
+          enabled: true
+          className: traefik
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+          hosts:
+            - host: demo.statedash.geracorp.ru
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - demo.statedash.geracorp.ru
+              secretName: statedash-demo-tls
+
+        # The invented network costs more than a real one of the same size: 120
+        # hosts are polled, walked and kept in history every two seconds.
+        resources:
+          requests:
+            cpu: 100m
+            memory: 192Mi
+          limits:
+            memory: 384Mi
