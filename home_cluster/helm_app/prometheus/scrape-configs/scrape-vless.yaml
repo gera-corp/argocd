@@ -7,10 +7,17 @@ metadata:
     prometheus: v2ray
     release: prom
 spec:
-  scheme: HTTP
-  metricsPath: /scrape
+  scheme: HTTPS
+  metricsPath: /v2ray/scrape
+  basicAuth:
+    username:
+      name: metrics-basic-auth
+      key: username
+    password:
+      name: metrics-basic-auth
+      key: password
   staticConfigs:
     - labels:
         job: v2ray
       targets:
-        - trol.geracorp.org:9550
+        - trol.geracorp.org:8844

@@ -7,10 +7,17 @@ metadata:
     prometheus: test
     release: prom
 spec:
-  scheme: HTTP
-  metricsPath: /metrics
+  scheme: HTTPS
+  metricsPath: /node/metrics
+  basicAuth:
+    username:
+      name: metrics-basic-auth
+      key: username
+    password:
+      name: metrics-basic-auth
+      key: password
   staticConfigs:
     - labels:
         job: VPN-server
       targets:
-        - trol.geracorp.org:9100
+        - trol.geracorp.org:8844
