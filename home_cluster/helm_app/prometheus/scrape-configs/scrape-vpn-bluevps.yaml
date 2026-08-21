@@ -21,3 +21,4 @@ spec:
         job: VPN-server
       targets:
         - trol.geracorp.org:8844
+        - homs.geracorp.org:8844
