@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: vless-exporter
+  namespace: monitoring
+  labels:
+    prometheus: vless
+    release: prom
+spec:
+  scheme: HTTPS
+  metricsPath: /vless/metrics
+  # The exporter runs a real tunnel pass every 30s in a background thread and
+  # /metrics serves cached values, so a 60s scrape is plenty (no need to scrape
+  # faster than the probe interval).
+  scrapeInterval: 60s
+  scrapeTimeout: 30s
+  basicAuth:
+    username:
+      name: metrics-basic-auth
+      key: username
+    password:
+      name: metrics-basic-auth
+      key: password
+  staticConfigs:
+    - labels:
+        job: vless-exporter
+      targets:
+        # Exporter lives on homs only (measures homs -> Frankfurt path).
+        - homs.geracorp.org:8844
