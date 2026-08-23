@@ -1,0 +1,48 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: vless-exporter-alerts
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    app.kubernetes.io/instance: kube-prometheus-stack
+spec:
+  groups:
+    - name: vless-exporter
+      rules:
+        - alert: VlessTunnelDown
+          annotations:
+            summary: VLESS tunnel is down (target {{ $labels.target }})
+            description: >-
+              Probe through the tunnel failed for target {{ $labels.target }}.
+              VALUE = {{ $value }}
+          expr: vless_probe_up == 0
+          for: 2m
+          labels:
+            severity: critical
+            service: network
+
+        - alert: VlessTunnelHighFailureRate
+          annotations:
+            summary: High probe failure rate on VLESS tunnel (target {{ $labels.target }})
+            description: >-
+              More than half of the probes are failing on target {{ $labels.target }}
+              (fail_ratio = {{ $value }}).
+          expr: vless_probe_fail_ratio > 0.5
+          for: 5m
+          labels:
+            severity: warning
+            service: network
+
+        - alert: VlessExitIpMismatch
+          annotations:
+            summary: VLESS exit IP mismatch (target {{ $labels.target }})
+            description: >-
+              The observed exit IP does not match expected_exit_ip for target
+              {{ $labels.target }}. The tunnel may be bypassed or the exit node changed.
+              VALUE = {{ $value }}
+          expr: vless_exit_ip_match == 0
+          for: 5m
+          labels:
+            severity: critical
+            service: network
