@@ -59,14 +59,9 @@ spec:
               paths:
                 - path: /
                   pathType: Prefix
-            - host: demo.statedash.geracorp.ru
-              paths:
-                - path: /
-                  pathType: Prefix
           tls:
             - hosts:
                 - demo.statedash.geracorp.org
-                - demo.statedash.geracorp.ru
               secretName: statedash-demo-tls
 
         # The invented network costs more than a real one of the same size: 120

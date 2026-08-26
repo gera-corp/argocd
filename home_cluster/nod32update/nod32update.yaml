@@ -114,7 +114,6 @@ spec:
   secretName: nod32update-cert
   dnsNames:
     - nod32mirror.geracorp.org
-    - nod32mirror.geracorp.ru
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-cloud-production
@@ -128,7 +127,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-  - match: Host(`nod32mirror.geracorp.org`) || Host(`nod32mirror.geracorp.ru`)
+  - match: Host(`nod32mirror.geracorp.org`)
     kind: Rule
     middlewares:
     - name: nod32update-auth
