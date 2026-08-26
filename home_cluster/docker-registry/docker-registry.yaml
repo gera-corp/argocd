@@ -50,7 +50,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: REGISTRY_URL
-              value: "https://docker-registry.geracorp.ru/ui/"
+              value: "https://docker-registry.geracorp.org/ui/"
             - name: SINGLE_REGISTRY
               value: "true"
             - name: REGISTRY_TITLE
@@ -72,7 +72,7 @@ spec:
             - name: CATALOG_ELEMENTS_LIMIT
               value: "1000"
             - name: PULL_URL
-              value: "docker-registry.geracorp.ru"
+              value: "docker-registry.geracorp.org"
             - name: NGINX_PROXY_PASS_URL
               value: "http://docker-registry.tools.svc.cluster.local:5000"
           ports:
@@ -188,9 +188,10 @@ metadata:
   name: docker-registry-cert
   namespace: tools
 spec:
-  commonName: docker-registry.geracorp.ru
+  commonName: docker-registry.geracorp.org
   secretName: docker-registry-cert
   dnsNames:
+    - docker-registry.geracorp.org
     - docker-registry.geracorp.ru
   issuerRef:
     kind: ClusterIssuer
@@ -205,14 +206,14 @@ spec:
   entryPoints:
     - websecure
   routes:
-  - match: Host(`docker-registry.geracorp.ru`)
+  - match: Host(`docker-registry.geracorp.org`) || Host(`docker-registry.geracorp.ru`)
     kind: Rule
     middlewares:
     - name: docker-registry-auth
     services:
     - name: docker-registry
       port: 5000
-  - match: Host(`docker-registry.geracorp.ru`) && PathPrefix(`/ui`)
+  - match: (Host(`docker-registry.geracorp.org`) || Host(`docker-registry.geracorp.ru`)) && PathPrefix(`/ui`)
     kind: Rule
     middlewares:
     - name: ui-add-trailing-slash

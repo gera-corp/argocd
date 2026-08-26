@@ -96,9 +96,10 @@ metadata:
   name: open-monitor-cert
   namespace: tools
 spec:
-  commonName: open-monitor.geracorp.ru
+  commonName: open-monitor.geracorp.org
   secretName: open-monitor-cert
   dnsNames:
+    - open-monitor.geracorp.org
     - open-monitor.geracorp.ru
   issuerRef:
     kind: ClusterIssuer
@@ -113,7 +114,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-  - match: Host(`open-monitor.geracorp.ru`)
+  - match: Host(`open-monitor.geracorp.org`) || Host(`open-monitor.geracorp.ru`)
     kind: Rule
     middlewares:
     - name: open-monitor-auth

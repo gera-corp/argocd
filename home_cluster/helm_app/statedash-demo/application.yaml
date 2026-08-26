@@ -1,4 +1,4 @@
-# The public demonstration at demo.statedash.geracorp.ru — the same chart as the
+# The public demonstration at demo.statedash.geracorp.org — the same chart as the
 # real installation next door, but talking to nobody.
 #
 # It needs no Secret and no namespace of its own declared here: there is no
@@ -55,12 +55,17 @@ spec:
           annotations:
             cert-manager.io/cluster-issuer: letsencrypt-prod
           hosts:
+            - host: demo.statedash.geracorp.org
+              paths:
+                - path: /
+                  pathType: Prefix
             - host: demo.statedash.geracorp.ru
               paths:
                 - path: /
                   pathType: Prefix
           tls:
             - hosts:
+                - demo.statedash.geracorp.org
                 - demo.statedash.geracorp.ru
               secretName: statedash-demo-tls
 

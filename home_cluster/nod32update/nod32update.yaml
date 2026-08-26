@@ -110,9 +110,10 @@ metadata:
   name: nod32update-cert
   namespace: tools
 spec:
-  commonName: nod32mirror.geracorp.ru
+  commonName: nod32mirror.geracorp.org
   secretName: nod32update-cert
   dnsNames:
+    - nod32mirror.geracorp.org
     - nod32mirror.geracorp.ru
   issuerRef:
     kind: ClusterIssuer
@@ -127,7 +128,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-  - match: Host(`nod32mirror.geracorp.ru`)
+  - match: Host(`nod32mirror.geracorp.org`) || Host(`nod32mirror.geracorp.ru`)
     kind: Rule
     middlewares:
     - name: nod32update-auth

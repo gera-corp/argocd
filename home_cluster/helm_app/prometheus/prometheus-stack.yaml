@@ -508,9 +508,10 @@ metadata:
   name: grafana-cert
   namespace: monitoring
 spec:
-  commonName: mon.geracorp.ru
+  commonName: mon.geracorp.org
   secretName: grafana-cert
   dnsNames:
+    - mon.geracorp.org
     - mon.geracorp.ru
   issuerRef:
     kind: ClusterIssuer
@@ -525,7 +526,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-  - match: Host(`mon.geracorp.ru`)
+  - match: Host(`mon.geracorp.org`) || Host(`mon.geracorp.ru`)
     kind: Rule
     services:
     - name: kube-prometheus-stack-grafana

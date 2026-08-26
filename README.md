@@ -42,7 +42,7 @@ Helm applications sync automatically with `prune`, `selfHeal` and
 ## Applications
 
 - [Statedash](https://github.com/gera-corp-org/statedash) — network dashboard fed
-  by OPNsense, plus the public demonstration at `demo.statedash.geracorp.ru`
+  by OPNsense, plus the public demonstration at `demo.statedash.geracorp.org`
   running the same chart in mock mode
 - [OpenClaw](https://github.com/serhanekicii/openclaw-helm) — pinned to the arm64
   node via `nodeSelector` and a matching toleration
