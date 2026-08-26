@@ -53,7 +53,7 @@ spec:
           enabled: true
           className: traefik
           annotations:
-            cert-manager.io/cluster-issuer: letsencrypt-prod
+            cert-manager.io/cluster-issuer: letsencrypt-cloud-production
           hosts:
             - host: demo.statedash.geracorp.org
               paths:

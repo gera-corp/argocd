@@ -117,7 +117,7 @@ spec:
     - nod32mirror.geracorp.ru
   issuerRef:
     kind: ClusterIssuer
-    name: letsencrypt-prod
+    name: letsencrypt-cloud-production
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
