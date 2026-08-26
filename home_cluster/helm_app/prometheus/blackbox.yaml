@@ -27,8 +27,8 @@ spec:
           enabled: true
           targets:
             - name: seafile                     # Human readable URL that will appear in Prometheus / AlertManager
-              url: https://sea.geracorp.ru      # The URL that blackbox will scrape
-              hostname: sea.geracorp.ru         # HTTP probes can accept an additional `hostname` parameter that will set `Host` header and TLS SNI
+              url: https://sea.geracorp.org     # The URL that blackbox will scrape
+              hostname: sea.geracorp.org        # HTTP probes can accept an additional `hostname` parameter that will set `Host` header and TLS SNI
             - name: mail-biostal
               url: https://mail.biostal.ru:4040
               hostname: mail.biostal.ru
