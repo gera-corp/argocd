@@ -26,7 +26,7 @@ spec:
     helm:
       valuesObject:
         opnsense:
-          url: https://opnsense.geracorp.org:4443
+          url: https://192.168.1.1:4443
           interfaces: lan,wireguard
           # the certificate is issued for the hostname above, which resolves on
           # the LAN; set to false if it stops matching
