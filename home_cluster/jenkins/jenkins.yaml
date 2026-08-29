@@ -98,7 +98,7 @@ metadata:
   name: jenkins-pv
   namespace: jenkins
 spec:
-  storageClassName: nfs-client
+  storageClassName: openmediavault-nfs-client
   accessModes:
   - ReadWriteOnce
   resources:

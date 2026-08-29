@@ -62,7 +62,7 @@ metadata:
   name: lldap-data
   namespace: lldap
 spec:
-  storageClassName: nfs-client
+  storageClassName: openmediavault-nfs-client
   accessModes:
     - ReadWriteOnce
   resources:

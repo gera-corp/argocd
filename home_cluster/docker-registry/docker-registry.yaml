@@ -151,6 +151,7 @@ spec:
       name: docker-registry-pv
       namespace: tools
     spec:
+      storageClassName: openmediavault-nfs-client
       accessModes: ["ReadWriteMany"]
       resources:
         requests:
