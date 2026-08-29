@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: x509-certificate-exporter
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  destination:
+    name: in-cluster
+    namespace: monitoring
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  source:
+    repoURL: https://charts.enix.io
+    chart: x509-certificate-exporter
+    targetRevision: 4.2.*
+    helm:
+      valuesObject:
+        # Следит за TLS-секретами кластера. Встроенные правила стека покрывают
+        # только PKI самого Kubernetes и kubelet, прикладные сертификаты — ничем.
+        secretsExporter:
+          enabled: true
+          secretTypes:
+            - type: kubernetes.io/tls
+              key: tls.crt
+          # Произвольные PEM из ConfigMap. Сюда попадает публичная часть
+          # админского сертификата Talos — его не видит ни один другой
+          # механизм, потому что он предъявляется apid, а не kube-apiserver.
+          configMapKeys:
+            - talos-admin-cert.pem
+        # caBundle вебхуков, APIService и CRD — классическая тихая просрочка:
+        # ломается приём запросов, а причина неочевидна.
+        cabundlesExporter:
+          enabled: true
+        prometheusServiceMonitor:
+          create: true
+        prometheusRules:
+          create: true
+          warningDaysLeft: 28
+          criticalDaysLeft: 14
+        grafana:
+          createDashboard: true

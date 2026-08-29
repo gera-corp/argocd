@@ -1,0 +1,27 @@
+# Публичная часть админского сертификата Talos из ~/.talos/config.
+# Приватного ключа здесь нет и он не нужен: для расчёта срока годности
+# достаточно самого сертификата.
+#
+# Зачем: этот сертификат предъявляется apid, а не kube-apiserver, поэтому
+# встроенное правило KubeClientCertificateExpiration его не видит. Именно
+# он молча истёк в декабре 2025 и обнаружился только в августе 2026.
+#
+# При перевыпуске (talosctl -n <узел> config new --roles os:admin --crt-ttl ...)
+# обновить и этот файл. Если забыть — экспортер продолжит отдавать старый срок
+# и алерт сработает, что само по себе напомнит.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: talos-admin-cert
+  namespace: monitoring
+data:
+  talos-admin-cert.pem: |
+    -----BEGIN CERTIFICATE-----
+    MIIBKDCB26ADAgECAhAJi4KSu6vb53JqRp9h68/iMAUGAytlcDAQMQ4wDAYDVQQK
+    EwV0YWxvczAeFw0yNjA4MjkxNzQzMjdaFw0yOTA4MjgxNzQzMjdaMBMxETAPBgNV
+    BAoTCG9zOmFkbWluMCowBQYDK2VwAyEAIcZkMPJB3V1MiiUXk4GOllSqQid3yHl+
+    VBuvVdxjfESjSDBGMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcD
+    AjAfBgNVHSMEGDAWgBRzsF9zs3x0FfOkr4AFUeVufsjhVzAFBgMrZXADQQA5DNpg
+    oMo5m4Yc3j5Vl92F3uyLmobtRxomJetGEIRDaR/5DtyJPV8bQHtGEs/9eZgO3Imk
+    56Tw9qnq//t4Yr4P
+    -----END CERTIFICATE-----
