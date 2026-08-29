@@ -67,6 +67,10 @@ spec:
             - name: talos-api-cp-03
               url: 192.168.1.122:50000
               module: tcp_connect
+            # --- ВРЕМЕННО: проверка срабатывания алерта TargetDown, порт заведомо закрыт
+            - name: alert-selftest
+              url: 192.168.1.120:59999
+              module: tcp_connect
             # --- kube-apiserver: доступность + срок сертификата (годовой)
             - name: kube-apiserver-cp-01
               url: 192.168.1.120:6443
