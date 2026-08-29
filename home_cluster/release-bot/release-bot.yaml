@@ -51,7 +51,7 @@ metadata:
   name: release-bot-pv
   namespace: release-bot
 spec:
-  storageClassName: openmediavault-nfs-client
+  storageClassName: nfs-csi
   accessModes:
   - ReadWriteOnce
   resources:

@@ -206,7 +206,7 @@ spec:
             accessModes:
               - ReadWriteOnce
             size: 5Gi
-            storageClassName: openmediavault-nfs-client
+            storageClassName: nfs-csi
         kubeEtcd:
           enabled: true
           service:

@@ -56,7 +56,7 @@ metadata:
   name: dockerhub-bot-data
   namespace: tools
 spec:
-  storageClassName: openmediavault-nfs-client
+  storageClassName: nfs-csi
   accessModes:
     - ReadWriteOnce
   resources:

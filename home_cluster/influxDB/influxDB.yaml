@@ -45,7 +45,7 @@ spec:
       spec:
         accessModes:
           - ReadWriteOnce
-        storageClassName: openmediavault-nfs-client
+        storageClassName: nfs-csi
         resources:
           requests:
             storage: 5G

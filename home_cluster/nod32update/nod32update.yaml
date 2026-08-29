@@ -84,7 +84,7 @@ metadata:
   name: nod32update-base-pv
   namespace: tools
 spec:
-  storageClassName: openmediavault-nfs-client
+  storageClassName: nfs-csi
   accessModes:
   - ReadWriteOnce
   resources:
