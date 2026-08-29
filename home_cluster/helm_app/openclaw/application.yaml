@@ -15,6 +15,9 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      # Без этого sync игнорирует ignoreDifferences и пытается обнулить
+      # volumeName/storageClassName, что запрещено для привязанного PVC.
+      - RespectIgnoreDifferences=true
   ignoreDifferences:
     - group: "*"
       kind: ConfigMap
