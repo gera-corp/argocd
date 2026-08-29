@@ -3,7 +3,7 @@ kind: Application
 metadata:
   name: csi-driver-nfs
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   destination:
     name: in-cluster
@@ -31,4 +31,5 @@ spec:
             onDelete: archive     # повторяет archiveOnDelete=true у старого класса
           reclaimPolicy: Delete
           volumeBindingMode: Immediate
+          allowVolumeExpansion: true
           annotations: {}

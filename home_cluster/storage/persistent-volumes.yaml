@@ -1,0 +1,466 @@
+# Статические PersistentVolume, усыновлённые драйвером csi-driver-nfs.
+#
+# Тома НЕ провизионируются динамически: каждый указывает на существующий каталог
+# на NFS 192.168.1.155:/k8s-storage, созданный ещё старым провизионером. Данные
+# при переходе не копировались.
+#
+# Эти объекты обязаны лежать в Git: пять PVC жёстко привязаны через volumeName,
+# а PVC с volumeName динамически не провизионится — без этих манифестов
+# пересборка кластера оставила бы их Pending навсегда.
+#
+# reclaimPolicy: Retain — удаление PVC каталог на NFS не трогает.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-influxdb-data-influxdb-0
+spec:
+  capacity:
+    storage: 5G
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: influxdb
+    name: data-influxdb-0
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/influxdb-data-influxdb-0-pvc-5fffe181-3079-473a-90a4-193bc024725f#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/influxdb-data-influxdb-0-pvc-5fffe181-3079-473a-90a4-193bc024725f
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-jenkins-jenkins-pv
+spec:
+  capacity:
+    storage: 5G
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: jenkins
+    name: jenkins-pv
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/jenkins-jenkins-pv-pvc-2389b713-d6ae-4a44-810e-66055e6a92f2#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/jenkins-jenkins-pv-pvc-2389b713-d6ae-4a44-810e-66055e6a92f2
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-lldap-lldap-data
+spec:
+  capacity:
+    storage: 100Mi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: lldap
+    name: lldap-data
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/lldap-lldap-data-pvc-c27ad134-4920-4602-84e0-8636d8b01d5f#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/lldap-lldap-data-pvc-c27ad134-4920-4602-84e0-8636d8b01d5f
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-loki-data-loki-grafana-loki-ingester-0
+spec:
+  capacity:
+    storage: 8Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: loki
+    name: data-loki-grafana-loki-ingester-0
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/loki-data-loki-grafana-loki-ingester-0-pvc-353fe86e-cfc4-4531-803e-ca2dc94415e9#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/loki-data-loki-grafana-loki-ingester-0-pvc-353fe86e-cfc4-4531-803e-ca2dc94415e9
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-loki-data-loki-grafana-loki-querier-0
+spec:
+  capacity:
+    storage: 8Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: loki
+    name: data-loki-grafana-loki-querier-0
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/loki-data-loki-grafana-loki-querier-0-pvc-89f9135b-3773-486d-a1e5-6d79620d92d1#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/loki-data-loki-grafana-loki-querier-0-pvc-89f9135b-3773-486d-a1e5-6d79620d92d1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-loki-loki-grafana-loki-compactor
+spec:
+  capacity:
+    storage: 8Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: loki
+    name: loki-grafana-loki-compactor
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/loki-loki-grafana-loki-compactor-pvc-2b1ec810-7177-4ff0-a98e-208e7e738fb1#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/loki-loki-grafana-loki-compactor-pvc-2b1ec810-7177-4ff0-a98e-208e7e738fb1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-minio-minio
+spec:
+  capacity:
+    storage: 8Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: minio
+    name: minio
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/minio-minio-pvc-3b3fdf90-e5b8-4cdf-9348-9070a7a890c7#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/minio-minio-pvc-3b3fdf90-e5b8-4cdf-9348-9070a7a890c7
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-monitoring-kube-prometheus-stack-grafana
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: monitoring
+    name: kube-prometheus-stack-grafana
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/monitoring-kube-prometheus-stack-grafana-pvc-751cdbb8-6671-423f-b708-986a5687e740#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/monitoring-kube-prometheus-stack-grafana-pvc-751cdbb8-6671-423f-b708-986a5687e740
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-monitoring-prometheus-kube-prometheus-stack-prometheus-db-prometheus-kube-prometheus-stack-prometheus-0
+spec:
+  capacity:
+    storage: 32Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: monitoring
+    name: prometheus-kube-prometheus-stack-prometheus-db-prometheus-kube-prometheus-stack-prometheus-0
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/monitoring-prometheus-kube-prometheus-stack-prometheus-db-prometheus-kube-prometheus-stack-prometheus-0-pvc-ad9870b3-19f6-4fac-b6bf-f72aa22e39f7#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/monitoring-prometheus-kube-prometheus-stack-prometheus-db-prometheus-kube-prometheus-stack-prometheus-0-pvc-ad9870b3-19f6-4fac-b6bf-f72aa22e39f7
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-openclaw-openclaw
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: openclaw
+    name: openclaw
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/openclaw-openclaw-pvc-164748a9-c938-4976-b338-09de83ac0af1#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/openclaw-openclaw-pvc-164748a9-c938-4976-b338-09de83ac0af1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-release-bot-release-bot-pv
+spec:
+  capacity:
+    storage: 50M
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: release-bot
+    name: release-bot-pv
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/release-bot-release-bot-pv-pvc-957de007-2def-43aa-8efb-c045597c2257#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/release-bot-release-bot-pv-pvc-957de007-2def-43aa-8efb-c045597c2257
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-seafile-data-seafile-mariadb-0
+spec:
+  capacity:
+    storage: 8Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: seafile
+    name: data-seafile-mariadb-0
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/seafile-data-seafile-mariadb-0-pvc-90140f18-a22f-4d46-83a6-e071effa6b2f#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/seafile-data-seafile-mariadb-0-pvc-90140f18-a22f-4d46-83a6-e071effa6b2f
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-seafile-redis-data-seafile-redis-master-0
+spec:
+  capacity:
+    storage: 8Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: seafile
+    name: redis-data-seafile-redis-master-0
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/seafile-redis-data-seafile-redis-master-0-pvc-560b0d65-66da-4b46-9dd2-12c4a6956cea#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/seafile-redis-data-seafile-redis-master-0-pvc-560b0d65-66da-4b46-9dd2-12c4a6956cea
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-seafile-seafile-data-seafile-0
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: seafile
+    name: seafile-data-seafile-0
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/seafile-seafile-data-seafile-0-pvc-0c566774-f528-4f56-a0af-836b2465553d#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/seafile-seafile-data-seafile-0-pvc-0c566774-f528-4f56-a0af-836b2465553d
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-statedash-demo-statedash-demo
+spec:
+  capacity:
+    storage: 128Mi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: statedash-demo
+    name: statedash-demo
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/statedash-demo-statedash-demo-pvc-3883a0f3-a495-4efc-a1f7-308e3328dcbb#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/statedash-demo-statedash-demo-pvc-3883a0f3-a495-4efc-a1f7-308e3328dcbb
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-statedash-statedash
+spec:
+  capacity:
+    storage: 64Mi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: statedash
+    name: statedash
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/statedash-statedash-pvc-6ccc68e0-3a61-4fd5-9bfe-7365d13366be#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/statedash-statedash-pvc-6ccc68e0-3a61-4fd5-9bfe-7365d13366be
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-tools-docker-registry-pv-docker-registry-0
+spec:
+  capacity:
+    storage: 5G
+  accessModes:
+  - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: tools
+    name: docker-registry-pv-docker-registry-0
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/tools-docker-registry-pv-docker-registry-0-pvc-8df7709d-bf23-46b1-b00e-54140e7ed9ef#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/tools-docker-registry-pv-docker-registry-0-pvc-8df7709d-bf23-46b1-b00e-54140e7ed9ef
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-tools-dockerhub-bot-data
+spec:
+  capacity:
+    storage: 100Mi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: tools
+    name: dockerhub-bot-data
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/tools-dockerhub-bot-data-pvc-20b47f19-0573-4ed7-aaef-6a03e119637b#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/tools-dockerhub-bot-data-pvc-20b47f19-0573-4ed7-aaef-6a03e119637b
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-tools-nod32update-base-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: tools
+    name: nod32update-base-pv
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/tools-nod32update-base-pv-pvc-c343d5eb-b190-4a8d-bc28-f898c49db726#
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/tools-nod32update-base-pv-pvc-c343d5eb-b190-4a8d-bc28-f898c49db726

@@ -19,6 +19,14 @@ case "$PATH_NFS" in
   *) echo "!! неожиданный путь: $PATH_NFS"; exit 1;;
 esac
 python3 -c "import yaml" 2>/dev/null || { echo "!! нужен python3 с PyYAML"; exit 1; }
+# --- проверить, что automated у ArgoCD снят: иначе selfHeal вернёт реплики
+# сразу после scale --replicas=0 (так и случилось в пилотном прогоне)
+if [ "$WL" != "none" ]; then
+  for app in home-lab statedash statedash-demo openclaw kube-prometheus-stack; do
+    auto=$(kubectl -n argocd get application "$app" -o jsonpath='{.spec.syncPolicy.automated}' 2>/dev/null || true)
+    [ -n "$auto" ] && { echo "!! у Application $app включён automated — selfHeal вернёт реплики; снимите его перед усыновлением"; exit 1; }
+  done
+fi
 say "каталог: $PATH_NFS  размер: $CAP  режимы: $MODES"
 mkdir -p /tmp/csi-adopt
 kubectl -n "$NS" get pvc "$PVC" -o yaml > "/tmp/csi-adopt/$NS-$PVC.pvc.yaml"
