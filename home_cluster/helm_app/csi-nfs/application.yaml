@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: csi-driver-nfs
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  destination:
+    name: in-cluster
+    namespace: csi
+  project: default
+  syncPolicy:
+    automated: {prune: true, selfHeal: true}
+    syncOptions: [CreateNamespace=true, ServerSideApply=true]
+  source:
+    repoURL: 'https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts'
+    chart: csi-driver-nfs
+    targetRevision: 4.13.4
+    helm:
+      valuesObject:
+        externalSnapshotter:
+          enabled: false          # снапшоты — отдельный этап
+        controller:
+          enableSnapshotter: false
+        storageClass:
+          create: true
+          name: nfs-csi
+          parameters:
+            server: 192.168.1.155
+            share: /k8s-storage
+            onDelete: archive     # повторяет archiveOnDelete=true у старого класса
+          reclaimPolicy: Delete
+          volumeBindingMode: Immediate
+          annotations: {}
