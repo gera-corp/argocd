@@ -21,6 +21,12 @@ spec:
       name: openclaw-config
       jsonPointers:
         - /data
+    # Тома усыновлены CSI-драйвером статически; volumeName проставляется
+    # при привязке и в чарте отсутствовать не может.
+    - group: ""
+      kind: PersistentVolumeClaim
+      jsonPointers:
+        - /spec/volumeName
   source:
     repoURL: 'https://serhanekicii.github.io/openclaw-helm'
     chart: openclaw

@@ -63,6 +63,8 @@ metadata:
   namespace: lldap
 spec:
   storageClassName: nfs-csi
+  # Том усыновлён CSI-драйвером статически: PVC привязан к конкретному PV.
+  volumeName: csi-lldap-lldap-data
   accessModes:
     - ReadWriteOnce
   resources:

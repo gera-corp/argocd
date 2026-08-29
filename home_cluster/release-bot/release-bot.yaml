@@ -52,6 +52,8 @@ metadata:
   namespace: release-bot
 spec:
   storageClassName: nfs-csi
+  # Том усыновлён CSI-драйвером статически: PVC привязан к конкретному PV.
+  volumeName: csi-release-bot-release-bot-pv
   accessModes:
   - ReadWriteOnce
   resources:

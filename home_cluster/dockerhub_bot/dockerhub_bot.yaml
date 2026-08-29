@@ -57,6 +57,8 @@ metadata:
   namespace: tools
 spec:
   storageClassName: nfs-csi
+  # Том усыновлён CSI-драйвером статически: PVC привязан к конкретному PV.
+  volumeName: csi-tools-dockerhub-bot-data
   accessModes:
     - ReadWriteOnce
   resources:
