@@ -23,9 +23,60 @@ spec:
     helm:
       skipCrds: false
       valuesObject:
+        config:
+          modules:
+            # Сохранён как есть: на нём держатся все HTTPS-цели ниже.
+            http_2xx:
+              prober: http
+              timeout: 5s
+              http:
+                follow_redirects: true
+                preferred_ip_protocol: ip4
+                valid_http_versions:
+                  - HTTP/1.1
+                  - HTTP/2.0
+            # Talos API пробуем БЕЗ TLS сознательно: apid отдаёт серверный
+            # сертификат со сроком жизни 24 часа и ротирует его ежедневно.
+            # С TLS метрика probe_ssl_earliest_cert_expiry всегда была бы
+            # меньше суток и намертво зажгла бы алерты на 14/3/0 дней.
+            tcp_connect:
+              prober: tcp
+              timeout: 5s
+              tcp:
+                preferred_ip_protocol: ip4
+            # Для kube-apiserver TLS нужен: его сертификат живёт год,
+            # и вот за его истечением следить осмысленно.
+            tcp_connect_tls:
+              prober: tcp
+              timeout: 5s
+              tcp:
+                preferred_ip_protocol: ip4
+                tls: true
+                tls_config:
+                  insecure_skip_verify: true
         serviceMonitor:
           enabled: true
           targets:
+            # --- Talos API: доступность apid (истечение тут не мониторится, см. выше)
+            - name: talos-api-cp-01
+              url: 192.168.1.120:50000
+              module: tcp_connect
+            - name: talos-api-cp-02
+              url: 192.168.1.121:50000
+              module: tcp_connect
+            - name: talos-api-cp-03
+              url: 192.168.1.122:50000
+              module: tcp_connect
+            # --- kube-apiserver: доступность + срок сертификата (годовой)
+            - name: kube-apiserver-cp-01
+              url: 192.168.1.120:6443
+              module: tcp_connect_tls
+            - name: kube-apiserver-cp-02
+              url: 192.168.1.121:6443
+              module: tcp_connect_tls
+            - name: kube-apiserver-cp-03
+              url: 192.168.1.122:6443
+              module: tcp_connect_tls
             - name: seafile                     # Human readable URL that will appear in Prometheus / AlertManager
               url: https://sea.geracorp.org     # The URL that blackbox will scrape
               hostname: sea.geracorp.org        # HTTP probes can accept an additional `hostname` parameter that will set `Host` header and TLS SNI
