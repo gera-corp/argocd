@@ -17,11 +17,13 @@ spec:
       - ServerSideApply=true
   ignoreDifferences:
     # Тома усыновлены CSI-драйвером статически; volumeName проставляется
-    # при привязке и в чарте отсутствовать не может.
+    # при привязке и в чарте отсутствовать не может. StorageClassName также
+    # попал в last-applied-configuration из-за статического усыновления.
     - group: ""
       kind: PersistentVolumeClaim
       jsonPointers:
         - /spec/volumeName
+        - /spec/storageClassName
   source:
     # OCI chart, published from the same repository as the image
     repoURL: ghcr.io/gera-corp-org/charts
