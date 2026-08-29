@@ -191,6 +191,8 @@ spec:
                   action: replace
         grafana:
           enabled: true
+          admin:
+            existingSecret: grafana-admin
           sidecar:
             dashboards:
               annotations:
