@@ -14,6 +14,11 @@ SERVER=$(kubectl get pv "$OLDPV" -o jsonpath='{.spec.nfs.server}')
 CAP=$(kubectl get pv "$OLDPV" -o jsonpath='{.spec.capacity.storage}')
 MODES=$(kubectl -n "$NS" get pvc "$PVC" -o jsonpath='{.spec.accessModes}')
 [ "$SERVER" = "192.168.1.155" ] || { echo "!! PV не на целевом сервере"; exit 1; }
+case "$PATH_NFS" in
+  /k8s-storage/*) ;;
+  *) echo "!! неожиданный путь: $PATH_NFS"; exit 1;;
+esac
+python3 -c "import yaml" 2>/dev/null || { echo "!! нужен python3 с PyYAML"; exit 1; }
 say "каталог: $PATH_NFS  размер: $CAP  режимы: $MODES"
 mkdir -p /tmp/csi-adopt
 kubectl -n "$NS" get pvc "$PVC" -o yaml > "/tmp/csi-adopt/$NS-$PVC.pvc.yaml"
@@ -29,6 +34,7 @@ if [ "$WL" != "none" ]; then
     used=$(kubectl -n "$NS" get pod -o jsonpath="{range .items[*]}{range .spec.volumes[*]}{.persistentVolumeClaim.claimName}{'\n'}{end}{end}" 2>/dev/null | grep -c "^${PVC}$" || true)
     [ "$used" = "0" ] && break; sleep 3
   done
+  [ "$used" = "0" ] || { echo "!! под всё ещё держит PVC $PVC после ожидания — СТОП"; exit 1; }
 fi
 
 # --- КРИТИЧНО: защитить каталог до удаления PVC
