@@ -21,7 +21,6 @@ spec:
     chart: kube-prometheus-stack
     targetRevision: 88.*
     helm:
-      skipCrds: false
       valuesObject:
         defaultRules:
           create: true
