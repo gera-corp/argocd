@@ -39,11 +39,22 @@ spec:
         # and the settings are shared by everyone looking.
         demo: true
 
-        # Nothing is worth keeping: settings.json only holds what a visitor
-        # cannot change anyway, and a restart should give the next person a
-        # clean instance rather than yesterday's fiddling.
+        # settings.json is still not worth keeping — a visitor cannot change
+        # anything here anyway — but the History section is, and without
+        # somewhere to write it the store switches itself off and the section
+        # leaves the menu, which on a demonstration hides the thing 1.8.0 was
+        # for. 120 invented devices come to about 70 MB once the shelves fill:
+        # two days of per-device minutes and five weeks of hours, at the 62-72
+        # bytes a point measured on real files. 128Mi leaves room for the
+        # free pages SQLite keeps.
+        #
+        # This makes the pod stateful, so the chart switches the deployment to
+        # Recreate: a ReadWriteOnce volume cannot be handed over while the old
+        # pod still holds it. A release now means a few seconds of downtime
+        # here, which a demonstration can afford.
         persistence:
-          enabled: false
+          enabled: true
+          size: 128Mi
 
         # A public name, unlike the real installation's, which is deliberately
         # internal. The certificate comes from the HTTP-01 issuer the other
