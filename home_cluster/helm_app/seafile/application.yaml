@@ -25,6 +25,13 @@ metadata:
   name: seafile
   annotations:
     argocd.argoproj.io/sync-wave: "3"
+    # Без этого приложение вечно OutOfSync на двух StatefulSet: подчарт
+    # MariaDB рендерит requests.memory как 1024Mi, а API-сервер хранит
+    # канонические 1Gi, и обычный diff ArgoCD считает это расхождением,
+    # которое никаким apply не устранить. ServerSideDiff сравнивает не текст
+    # манифеста, а результат server-side apply в режиме dry-run, где
+    # величины уже приведены к каноническому виду.
+    argocd.argoproj.io/compare-options: ServerSideDiff=true
 spec:
   destination:
     name: in-cluster
