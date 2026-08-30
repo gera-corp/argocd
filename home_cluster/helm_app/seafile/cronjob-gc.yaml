@@ -55,6 +55,12 @@ spec:
       template:
         spec:
           restartPolicy: Never
+          # Джобе больше не нужен доступ к API кластера. serviceAccountName
+          # указан явно: прежний seafile-gc остался бы в объекте — home-lab
+          # применяет манифесты client-side apply, а он удаляет только те поля,
+          # что были в его же last-applied.
+          serviceAccountName: default
+          automountServiceAccountToken: false
           containers:
           - name: gc
             image: docker.io/seafileltd/seafile-mc:13.0.25
