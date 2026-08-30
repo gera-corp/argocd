@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metrics-server
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  destination:
+    name: in-cluster
+    namespace: metrics-server
+  project: default
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  source:
+    repoURL: 'https://kubernetes-sigs.github.io/metrics-server'
+    chart: metrics-server
+    # Релиз раньше ставился Terraform-модулем (terraform/talos/helm/metrics-server)
+    # как Helm-релиз. Переносим его в ArgoCD без переустановки: значения ниже
+    # скопированы дословно из values.yaml того модуля, а версия чарта закреплена
+    # точно (не диапазоном), потому что усыновление существующих ресурсов
+    # держится на том, что рендер чарта побайтово совпадает с уже живым
+    # манифестом — это уже проверено и детерминировано.
+    #
+    # automated намеренно не добавлен: первая синхронизация выполняется вручную,
+    # чтобы убедиться, что ArgoCD действительно взял существующие ресурсы под
+    # управление, а не пересоздал их, и только после этого в отдельном коммите
+    # включается selfHeal/prune.
+    #
+    # metrics-server отдаёт Kubernetes Metrics API (metrics.k8s.io), от которого
+    # зависят три HPA в namespace istio-system — прерывать его работу на время
+    # усыновления нельзя.
+    targetRevision: 3.13.0
+    helm:
+      valuesObject:
+        defaultArgs:
+          - --cert-dir=/tmp
+          - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+          - --kubelet-use-node-status-port
+          - --metric-resolution=15s
+          - --kubelet-insecure-tls
