@@ -1,0 +1,54 @@
+# У бакета vault-backup не было правила ротации (lifecycle rule), поэтому он
+# рос без ограничений. Снимки Vault прилетают дважды в сутки и весят примерно
+# по 0.5 МБ каждый, так что срок хранения в 30 дней ограничивает размер
+# бакета примерно 30 мегабайтами. Значение 30 дней выбрано осознанно: сегодня
+# оно не удаляет ни одного снимка, потому что самому старому снимку в бакете
+# 29 дней. Джоб идемпотентен — put-bucket-lifecycle-configuration полностью
+# перезаписывает конфигурацию правил на бакете, поэтому повторный запуск
+# безопасен.
+#
+# Поле автоочистки завершённых Job (ttl-секунды после завершения) намеренно
+# не задано: если завершённый Job удалится, ArgoCD увидит расхождение с
+# манифестом (ресурс отсутствует в кластере) и будет пересоздавать его в
+# бесконечном цикле при каждой синхронизации.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-backup-lifecycle
+  namespace: vault-backup
+spec:
+  template:
+    spec:
+      containers:
+      - name: lifecycle
+        image: amazon/aws-cli:2.27.62
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/sh
+        - -ec
+        args:
+        - |
+          cat > /tmp/lifecycle.json <<'JSON'
+          {
+            "Rules": [
+              {
+                "ID": "expire-old-snapshots",
+                "Status": "Enabled",
+                "Filter": {
+                  "Prefix": ""
+                },
+                "Expiration": {
+                  "Days": 30
+                }
+              }
+            ]
+          }
+          JSON
+          aws --endpoint-url https://api-minio.local.geracorp.work s3api put-bucket-lifecycle-configuration --bucket vault-backup --lifecycle-configuration file:///tmp/lifecycle.json;
+          aws --endpoint-url https://api-minio.local.geracorp.work s3api get-bucket-lifecycle-configuration --bucket vault-backup;
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          value: vault:secret/data/vault_backup/snapshot-s3#AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          value: vault:secret/data/vault_backup/snapshot-s3#AWS_SECRET_ACCESS_KEY
+      restartPolicy: OnFailure
