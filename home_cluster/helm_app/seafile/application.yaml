@@ -95,8 +95,11 @@ spec:
             value: sea.geracorp.org
           - name: JWT_PRIVATE_KEY
             value: vault:secret/data/seafile#JWT_PRIVATE_KEY
-          - name: SEAFILE_MYSQL_DB_HOST
-            value: seafile-mariadb.seafile.svc.cluster.local
+          # SEAFILE_MYSQL_DB_HOST здесь намеренно нет: чарт добавляет его сам
+          # из seafile.database.hostname сразу после этого списка. В values
+          # релиза он был продублирован — helm это проглатывал (strategic merge
+          # схлопывал запись по имени), а ArgoCD на дубликате ключа в env падает
+          # с ComparisonError и вообще не может посчитать diff.
           - name: SEAFILE_MYSQL_DB_USER
             value: seafile
           - name: SEAFILE_MYSQL_DB_PASSWORD
