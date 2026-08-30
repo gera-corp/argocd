@@ -1,65 +1,42 @@
-# GC для Seafile: раз в неделю останавливает сервисы, прогоняет seaf-gc.sh
-# и поднимает под обратно. Раньше жил только в кластере — создан руками через
-# kubectl, ни чарт, ни Terraform о нём не знали, и после переноса seafile в
-# ArgoCD он остался единственным объектом в namespace без владельца.
+# GC для Seafile: раз в неделю подчищает блоки, на которые больше не ссылается
+# ни один коммит. Создан когда-то руками через kubectl, в Git забран 2026-08-30.
 #
-# Лежит рядом с seafile, но применяется приложением home-lab, а не seafile:
-# в чарте его нет, а Application seafile рендерит только чарт.
+# Раньше джоба ходила в под seafile через kubectl exec: гасила seahub и seafile,
+# прогоняла seaf-gc.sh и поднимала сервисы обратно через kubectl rollout restart.
+# Это требовало отдельного образа bitnami/kubectl, ServiceAccount и прав на exec
+# и patch StatefulSet.
 #
-# rollout restart в конце нужен, чтобы vault-webhook заново подставил секреты
-# в новый под. ArgoCD этому не мешает: чарт не рендерит аннотации шаблона пода
-# у StatefulSet seafile, поэтому kubectl.kubernetes.io/restartedAt остаётся за
-# kubectl, и selfHeal его не откатывает.
+# Ничего этого не нужно: seafserv-gc при базе MySQL сам переходит в онлайновый
+# режим — в логе каждого запуска стоит "Database is MySQL/Postgre/Oracle, use
+# online GC". Останавливать сервер незачем, а значит незачем и перезапускать.
+# Проверка validate_already_running в seaf-gc.sh 13.0.25 объявлена, но не
+# вызывается.
 #
-# Права намеренно узкие: exec в под, чтение подов и patch StatefulSet — ровно
-# то, что делает скрипт.
+# Теперь джоба запускает seafserv-gc в своём поде из того же образа seafile и
+# работает с данными напрямую. Обёртку seaf-gc.sh не используем: она требует
+# JWT_PRIVATE_KEY, который нужен серверу, но не сборщику мусора, и зависит от
+# симлинков, которые создаёт entrypoint образа.
+#
+# Том подключён отдельным PV в режиме ReadWriteMany поверх того же каталога NFS,
+# что и seafile-data-seafile-0: RWO-том уже занят подом seafile-0, а онлайновый
+# GC рассчитан на параллельную работу с сервером. PV лежит в
+# home_cluster/storage/persistent-volumes.yaml рядом с остальными.
+#
+# Тег образа обязан совпадать с тем, что стоит у StatefulSet в application.yaml:
+# пути внутри контейнера версионированы.
 apiVersion: v1
-kind: ServiceAccount
+kind: PersistentVolumeClaim
 metadata:
-  name: seafile-gc
+  name: seafile-gc-data
   namespace: seafile
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: seafile-gc
-  namespace: seafile
-rules:
-- apiGroups:
-  - ''
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: nfs-csi
+  volumeName: csi-seafile-gc-data
   resources:
-  - pods
-  verbs:
-  - get
-  - list
-- apiGroups:
-  - ''
-  resources:
-  - pods/exec
-  verbs:
-  - create
-- apiGroups:
-  - apps
-  resources:
-  - statefulsets
-  verbs:
-  - get
-  - list
-  - patch
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: seafile-gc
-  namespace: seafile
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: seafile-gc
-subjects:
-- kind: ServiceAccount
-  name: seafile-gc
-  namespace: seafile
+    requests:
+      storage: 10Gi
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -67,7 +44,9 @@ metadata:
   name: seafile-gc
   namespace: seafile
 spec:
+  schedule: 0 3 * * 0
   concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
@@ -75,40 +54,47 @@ spec:
       backoffLimit: 1
       template:
         spec:
+          restartPolicy: Never
           containers:
-          - command:
+          - name: gc
+            image: docker.io/seafileltd/seafile-mc:13.0.25
+            command:
             - /bin/bash
             - -c
             - |
               set -euo pipefail
 
-              POD="seafile-0"
-              NS="seafile"
-              DIR="/opt/seafile/seafile-server-latest"
+              # seafile-server-latest — симлинк, который создаёт entrypoint
+              # образа; мы его не запускаем, поэтому берём версию глобом.
+              INSTALL=$(echo /opt/seafile/seafile-server-*)
+              export LD_LIBRARY_PATH="$INSTALL/seafile/lib:$INSTALL/seafile/lib64"
 
-              echo "=== $(date) — Seafile GC started ==="
-
-              echo ">>> Stopping seafile services..."
-              kubectl exec -n "$NS" "$POD" -- bash -c "$DIR/seahub.sh stop; $DIR/seafile.sh stop; sleep 3; echo done" || true
-
-              echo ">>> Running garbage collector..."
-              kubectl exec -n "$NS" "$POD" -- bash -c "$DIR/seaf-gc.sh"
-
-              echo ">>> Restarting pod (rollout restart) to re-inject Vault secrets..."
-              kubectl rollout restart sts/seafile -n "$NS"
-
-              echo ">>> Waiting for rollout to complete..."
-              kubectl rollout status sts/seafile -n "$NS" --timeout=300s
-
-              echo ">>> Verifying services..."
-              kubectl exec -n "$NS" "$POD" -- bash -c "pgrep -a seaf-server && pgrep -a gunicorn | head -1 && echo 'All services running'"
-
+              echo "=== $(date) — Seafile GC started ($INSTALL) ==="
+              "$INSTALL/seafile/bin/seafserv-gc" \
+                -d /shared/seafile/seafile-data \
+                -F /shared/seafile/conf
               echo "=== $(date) — Seafile GC completed ==="
-            image: bitnami/kubectl:latest
-            imagePullPolicy: Always
-            name: gc
-          dnsPolicy: ClusterFirst
-          restartPolicy: Never
-          serviceAccountName: seafile-gc
-  schedule: 0 3 * * 0
-  successfulJobsHistoryLimit: 3
+            env:
+            # Настройки базы seafserv-gc читает только из окружения:
+            # seafile.conf в этой установке содержит лишь порт fileserver.
+            - name: SEAFILE_MYSQL_DB_HOST
+              value: seafile-mariadb.seafile.svc.cluster.local
+            - name: SEAFILE_MYSQL_DB_PORT
+              value: '3306'
+            - name: SEAFILE_MYSQL_DB_USER
+              value: seafile
+            - name: SEAFILE_MYSQL_DB_PASSWORD
+              value: seafile
+            - name: SEAFILE_MYSQL_DB_CCNET_DB_NAME
+              value: ccnet_db
+            - name: SEAFILE_MYSQL_DB_SEAFILE_DB_NAME
+              value: seafile_db
+            - name: SEAFILE_LOG_TO_STDOUT
+              value: 'true'
+            volumeMounts:
+            - name: seafile-data
+              mountPath: /shared
+          volumes:
+          - name: seafile-data
+            persistentVolumeClaim:
+              claimName: seafile-gc-data

@@ -440,3 +440,36 @@ spec:
     volumeAttributes:
       server: 192.168.1.155
       share: /k8s-storage/tools-nod32update-base-pv-pvc-c343d5eb-b190-4a8d-bc28-f898c49db726
+---
+# Второй вход в тот же каталог, что и csi-seafile-seafile-data-seafile-0, но в
+# режиме ReadWriteMany: он нужен еженедельной джобе seafile-gc, которая гоняет
+# seafserv-gc параллельно с работающим сервером. Исходный том — ReadWriteOnce и
+# занят подом seafile-0.
+#
+# volumeHandle отличается от соседнего последним полем (##gc): драйверу он нужен
+# уникальным, а каталог для монтирования берётся из volumeAttributes.
+#
+# Джоба описана в home_cluster/helm_app/seafile/cronjob-gc.yaml.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-seafile-gc-data
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+  - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  volumeMode: Filesystem
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: seafile
+    name: seafile-gc-data
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.1.155#k8s-storage/seafile-seafile-data-seafile-0-pvc-0c566774-f528-4f56-a0af-836b2465553d##gc
+    volumeAttributes:
+      server: 192.168.1.155
+      share: /k8s-storage/seafile-seafile-data-seafile-0-pvc-0c566774-f528-4f56-a0af-836b2465553d
