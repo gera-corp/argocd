@@ -16,9 +16,9 @@
 # без этого подчарт MariaDB генерирует пароль root заново при каждом
 # рендере, и чарт перестаёт делать это сам.
 #
-# Автоматическая синхронизация сознательно не включена: первая
-# синхронизация выполняется вручную, чтобы проверить усыновление
-# StatefulSet'ов до того, как ArgoCD начнёт делать это самостоятельно.
+# Первая синхронизация выполнялась вручную: три StatefulSet усыновлены
+# на месте, UID объектов и PVC не изменились. После проверки включён
+# автоматический режим.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -38,6 +38,9 @@ spec:
     namespace: seafile
   project: default
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions: [CreateNamespace=true, ServerSideApply=true]
   source:
     repoURL: 'https://github.com/gera-corp-org/helm-seafile.git'
