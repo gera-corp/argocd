@@ -10,6 +10,9 @@ spec:
     namespace: metrics-server
   project: default
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
@@ -23,10 +26,9 @@ spec:
     # держится на том, что рендер чарта побайтово совпадает с уже живым
     # манифестом — это уже проверено и детерминировано.
     #
-    # automated намеренно не добавлен: первая синхронизация выполняется вручную,
-    # чтобы убедиться, что ArgoCD действительно взял существующие ресурсы под
-    # управление, а не пересоздал их, и только после этого в отдельном коммите
-    # включается selfHeal/prune.
+    # Первая синхронизация выполнена вручную, усыновление проверено: все UID
+    # ресурсов совпали до и после, значит ArgoCD взял существующие объекты под
+    # управление, а не пересоздал их. Self-healing теперь включен.
     #
     # metrics-server отдаёт Kubernetes Metrics API (metrics.k8s.io), от которого
     # зависят три HPA в namespace istio-system — прерывать его работу на время
