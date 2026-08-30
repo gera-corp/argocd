@@ -1,0 +1,114 @@
+# GC для Seafile: раз в неделю останавливает сервисы, прогоняет seaf-gc.sh
+# и поднимает под обратно. Раньше жил только в кластере — создан руками через
+# kubectl, ни чарт, ни Terraform о нём не знали, и после переноса seafile в
+# ArgoCD он остался единственным объектом в namespace без владельца.
+#
+# Лежит рядом с seafile, но применяется приложением home-lab, а не seafile:
+# в чарте его нет, а Application seafile рендерит только чарт.
+#
+# rollout restart в конце нужен, чтобы vault-webhook заново подставил секреты
+# в новый под. ArgoCD этому не мешает: чарт не рендерит аннотации шаблона пода
+# у StatefulSet seafile, поэтому kubectl.kubernetes.io/restartedAt остаётся за
+# kubectl, и selfHeal его не откатывает.
+#
+# Права намеренно узкие: exec в под, чтение подов и patch StatefulSet — ровно
+# то, что делает скрипт.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: seafile-gc
+  namespace: seafile
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: seafile-gc
+  namespace: seafile
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - ''
+  resources:
+  - pods/exec
+  verbs:
+  - create
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: seafile-gc
+  namespace: seafile
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: seafile-gc
+subjects:
+- kind: ServiceAccount
+  name: seafile-gc
+  namespace: seafile
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: seafile-gc
+  namespace: seafile
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 1800
+      backoffLimit: 1
+      template:
+        spec:
+          containers:
+          - command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+
+              POD="seafile-0"
+              NS="seafile"
+              DIR="/opt/seafile/seafile-server-latest"
+
+              echo "=== $(date) — Seafile GC started ==="
+
+              echo ">>> Stopping seafile services..."
+              kubectl exec -n "$NS" "$POD" -- bash -c "$DIR/seahub.sh stop; $DIR/seafile.sh stop; sleep 3; echo done" || true
+
+              echo ">>> Running garbage collector..."
+              kubectl exec -n "$NS" "$POD" -- bash -c "$DIR/seaf-gc.sh"
+
+              echo ">>> Restarting pod (rollout restart) to re-inject Vault secrets..."
+              kubectl rollout restart sts/seafile -n "$NS"
+
+              echo ">>> Waiting for rollout to complete..."
+              kubectl rollout status sts/seafile -n "$NS" --timeout=300s
+
+              echo ">>> Verifying services..."
+              kubectl exec -n "$NS" "$POD" -- bash -c "pgrep -a seaf-server && pgrep -a gunicorn | head -1 && echo 'All services running'"
+
+              echo "=== $(date) — Seafile GC completed ==="
+            image: bitnami/kubectl:latest
+            imagePullPolicy: Always
+            name: gc
+          dnsPolicy: ClusterFirst
+          restartPolicy: Never
+          serviceAccountName: seafile-gc
+  schedule: 0 3 * * 0
+  successfulJobsHistoryLimit: 3
