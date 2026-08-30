@@ -33,7 +33,7 @@ spec:
     # metrics-server отдаёт Kubernetes Metrics API (metrics.k8s.io), от которого
     # зависят три HPA в namespace istio-system — прерывать его работу на время
     # усыновления нельзя.
-    targetRevision: 3.13.0
+    targetRevision: 3.14.0
     helm:
       valuesObject:
         defaultArgs:
