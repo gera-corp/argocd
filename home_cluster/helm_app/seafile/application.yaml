@@ -12,8 +12,10 @@
 # версиями. memcached удалён: с Seafile 13 кэшем стал Redis.
 #
 # Пересоздание объектов при переходе. Три поля неизменяемы, поэтому
-# обновление на месте невозможно и объекты удалялись вручную с
-# --cascade=orphan, после чего selfHeal пересоздал их из этой спеки:
+# обновление на месте невозможно: объекты удалялись вручную обычным
+# каскадным удалением, после чего selfHeal пересоздал их из этой спеки.
+# Orphan здесь не годится — селекторы новые, старые поды под них не
+# подходят, а имена совпадают, и новый StatefulSet встаёт на AlreadyExists:
 #   - selector StatefulSet seafile: добавлена метка app.kubernetes.io/component,
 #     без неё селектор совпадал с подами mariadb и redis;
 #   - selector StatefulSet seafile-mariadb: раньше метки подчарта Bitnami;
@@ -29,9 +31,8 @@
 # Пароли больше не передаются открытым текстом. Раньше SEAFILE_MYSQL_DB_PASSWORD
 # лежал прямо здесь и был виден в spec любого пода; теперь чарт читает его из
 # секрета seafile-mariadb (см. secrets.yaml рядом) через secretKeyRef.
-# Учётные данные администратора и JWT по-прежнему приходят vault-ссылками
-# через extraEnv — чарт сохраняет этот список сырым специально ради
-# bank-vaults.
+# Учётные данные администратора и JWT задаются vault-ссылками в структурных
+# полях values — почему не через extraEnv, объяснено ниже по месту.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -55,7 +56,7 @@ spec:
     syncOptions: [CreateNamespace=true, ServerSideApply=true]
   source:
     repoURL: 'https://github.com/gera-corp-org/helm-seafile.git'
-    targetRevision: v0.2.0
+    targetRevision: v0.2.1
     path: '.'
     helm:
       valuesObject:
@@ -95,6 +96,14 @@ spec:
           persistence:
             size: 8Gi
             storageClass: nfs-csi
+            # Том достался от подчарта Bitnami, который держал датадир в
+            # подкаталоге data. Официальный образ ищет данные прямо в
+            # /var/lib/mysql, видит там чужую раскладку, считает том пустым
+            # и инициализирует базу заново рядом со старой — все логины
+            # начинают отдавать Access denied, хотя данные целы. subPath
+            # монтирует подкаталог и оставляет раскладку тома как есть,
+            # так что откат на чарт, который её создал, тоже найдёт данные.
+            subPath: data
         cache:
           provider: redis
           enabled: true
