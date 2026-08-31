@@ -56,7 +56,7 @@ spec:
     syncOptions: [CreateNamespace=true, ServerSideApply=true]
   source:
     repoURL: 'https://github.com/gera-corp-org/helm-seafile.git'
-    targetRevision: v0.2.1
+    targetRevision: v0.3.0
     path: '.'
     helm:
       valuesObject:
