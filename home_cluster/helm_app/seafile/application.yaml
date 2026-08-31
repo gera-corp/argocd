@@ -69,16 +69,22 @@ spec:
           timeZone: Etc/UTC
           webdav:
             enabled: true
-          # Значения подставляет vault-secrets-webhook на admission.
-          # extraEnv добавляется в список env последним и переопределяет
-          # пустые ключи из секрета, который создаёт чарт.
-          extraEnv:
-          - name: INIT_SEAFILE_ADMIN_EMAIL
-            value: vault:secret/data/seafile#SEAFILE_ADMIN_EMAIL
-          - name: INIT_SEAFILE_ADMIN_PASSWORD
-            value: vault:secret/data/seafile#SEAFILE_ADMIN_PASSWORD
-          - name: JWT_PRIVATE_KEY
-            value: vault:secret/data/seafile#JWT_PRIVATE_KEY
+          # Ссылки кладутся в структурные поля, а не в extraEnv. Чарт
+          # положит их в свой секрет seafile, а vault-secrets-webhook
+          # развернёт на admission — так же, как он это делает для
+          # seafile-mariadb.
+          #
+          # Через extraEnv было бы нельзя: чарт уже выставляет эти три
+          # переменные из своего секрета, extraEnv добавил бы их вторым
+          # разом, и в env оказалось бы по два вхождения с одним именем.
+          # Helm такое проглатывает (strategic merge схлопывает запись по
+          # имени), а ArgoCD с ServerSideApply падает на построении
+          # типизированного патча: "duplicate entries for key". Ровно та же
+          # причина, по которой ниже нет SEAFILE_MYSQL_DB_HOST.
+          admin:
+            email: vault:secret/data/seafile#SEAFILE_ADMIN_EMAIL
+            password: vault:secret/data/seafile#SEAFILE_ADMIN_PASSWORD
+          jwtPrivateKey: vault:secret/data/seafile#JWT_PRIVATE_KEY
         database:
           enabled: true
           user: seafile
