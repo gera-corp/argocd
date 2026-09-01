@@ -6,13 +6,19 @@
 # ClusterIssuer и Certificate не существуют как типы, и на пустом кластере
 # применение упало бы. SkipDryRunOnMissingResource нужен по той же причине:
 # при первой сборке ArgoCD не сможет сделать dry-run типа, которого ещё нет.
+#
+# ServerSideApply — потому что home-lab применяет манифесты client-side, а
+# Terraform оставил в letsencrypt-cloud-production аннотацию last-applied с
+# resourceVersion внутри. Трёхсторонний merge пытался её обнулить, и API
+# отвечал "resourceVersion: Invalid value: 0", вешая синхронизацию home-lab
+# целиком. Саму аннотацию я убрал, но SSA её просто не читает.
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-prod
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true,ServerSideApply=true
 spec:
   acme:
     email: exandore@gmail.com
@@ -35,7 +41,7 @@ metadata:
   name: letsencrypt-cloud-production
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true,ServerSideApply=true
 spec:
   acme:
     email: exandore@gmail.com
@@ -69,7 +75,7 @@ metadata:
   namespace: traefik
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true,ServerSideApply=true
 spec:
   secretName: letsencrypt-cloud-production-tls
   issuerRef:
