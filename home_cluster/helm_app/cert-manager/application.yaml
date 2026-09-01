@@ -1,0 +1,37 @@
+# Перенесено из Terraform в ArgoCD без переустановки. Server-side dry-run по
+# всем 46 объектам чарта, включая шесть CRD, показал ноль отличий — ни один
+# под не перезапускался.
+#
+# crds.enabled: true — CRD ставит сам чарт, отдельного шага нет. Значит и
+# обновление CRD едет вместе с обновлением чарта; на мажорных версиях
+# cert-manager это надо читать заранее.
+#
+# ClusterIssuer'ы и сертификат-звёздочка лежат в issuers.yaml рядом: они не
+# часть чарта, их применяет home-lab. Токен Cloudflare для DNS-01 — в
+# secrets.yaml.
+#
+# Волна 1: без CRD cert-manager не применятся ни issuers, ни аннотации
+# cert-manager.io на ingress у traefik и seafile из третьей волны.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  destination:
+    name: in-cluster
+    namespace: cert-manager
+  project: default
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+  source:
+    repoURL: https://charts.jetstack.io
+    chart: cert-manager
+    targetRevision: 1.21.1
+    helm:
+      valuesObject:
+        crds:
+          enabled: true

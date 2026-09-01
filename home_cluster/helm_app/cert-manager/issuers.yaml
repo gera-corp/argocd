@@ -1,0 +1,81 @@
+# Выпускающие и сертификат-звёздочка. Раньше их применял Terraform ресурсом
+# kubernetes_manifest из каталога manifests/; в чарт cert-manager они не
+# входят, поэтому применяет их home-lab, а не Application cert-manager.
+#
+# sync-wave 2 — на волну позже самого cert-manager: без его CRD объекты
+# ClusterIssuer и Certificate не существуют как типы, и на пустом кластере
+# применение упало бы. SkipDryRunOnMissingResource нужен по той же причине:
+# при первой сборке ArgoCD не сможет сделать dry-run типа, которого ещё нет.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  acme:
+    email: exandore@gmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    # HTTP-01: подходит только для имён, которые реально отвечают из интернета.
+    solvers:
+    - http01:
+        ingress:
+          serviceType: ClusterIP
+          ingressClassName: traefik
+---
+# Основной выпускающий: DNS-01 через Cloudflare. Именно он позволяет получать
+# настоящие сертификаты на имена вроде *.local.geracorp.work, которые снаружи
+# не резолвятся и HTTP-01 пройти не могут.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-cloud-production
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  acme:
+    email: exandore@gmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-cloud-production
+    solvers:
+    - dns01:
+        cloudflare:
+          email: gera_ivanoff@mail.ru
+          apiTokenSecretRef:
+            name: cloudflare-api-token-secret
+            key: api-token
+      # Три зоны, а не одна: в файле Terraform, откуда issuer переехал, была
+      # только geracorp.work — живой объект ушёл вперёд и о нём забыли. На
+      # geracorp.org висит seafile, так что применение старого файла обрубило
+      # бы ему продление сертификата. За истину взято состояние кластера.
+      selector:
+        dnsZones:
+        - geracorp.work
+        - geracorp.org
+        - geracorp.ru
+---
+# Сертификат-звёздочка живёт в namespace traefik, потому что секрет
+# letsencrypt-cloud-production-tls, который он выпускает, назначен дефолтным
+# в TLSStore у traefik (см. home_cluster/helm_app/traefik/traefik.yaml).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-home-local-crt
+  namespace: traefik
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  secretName: letsencrypt-cloud-production-tls
+  issuerRef:
+    name: letsencrypt-cloud-production
+    kind: ClusterIssuer
+  commonName: "*.local.geracorp.work"
+  dnsNames:
+  - geracorp.work
+  - "*.local.geracorp.work"

@@ -1,0 +1,66 @@
+# Перенесено из Terraform в ArgoCD без переустановки. Server-side dry-run по
+# шести объектам чарта показал ноль отличий, DaemonSet не перезапускался.
+#
+# Собирает логи контейнеров и льёт их в Loki. Отдельными правилами вытащены
+# ztunnel, ingressgateway и waypoint из istio — им дописываются метки cluster,
+# project и service, чтобы в Loki их можно было отделить от прочего.
+#
+# affinity исключает control-plane: там логи собирать нечего, рабочие нагрузки
+# туда не планируются.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fluent-bit
+  annotations:
+    argocd.argoproj.io/sync-wave: '2'
+spec:
+  destination:
+    name: in-cluster
+    namespace: logs
+  project: default
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+  source:
+    repoURL: https://fluent.github.io/helm-charts
+    chart: fluent-bit
+    targetRevision: 0.57.9
+    helm:
+      valuesObject:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: node-role.kubernetes.io/control-plane
+                  operator: DoesNotExist
+        config:
+          filters: "[FILTER]\n    Name                 kubernetes\n    Match                kube.*\n \
+            \   Merge_Log            On\n    Keep_Log             Off\n    K8S-Logging.Parser   On\n \
+            \   K8S-Logging.Exclude  On\n\n[FILTER]\n    Name    record_modifier\n    Match   kube.ztunnel.*\n\
+            \    Record  cluster ${CLUSTER_ENV}\n    Record  project ${PROJECT}\n    Record  service ztunnel\n\
+            \n[FILTER]\n    Name    record_modifier\n    Match   kube.ingressgw.*\n    Record  cluster\
+            \ ${CLUSTER_ENV}\n    Record  project ${PROJECT}\n    Record  service ingressgw\n\n[FILTER]\n\
+            \    Name    record_modifier\n    Match   kube.waypoint.*\n    Record  cluster ${CLUSTER_ENV}\n\
+            \    Record  project ${PROJECT}\n    Record  service waypoint\n"
+          inputs: "[INPUT]\n    Name              tail\n    Path              /var/log/containers/*.log\n\
+            \    multiline.parser  docker, cri\n    Tag               kube.*\n    Mem_Buf_Limit     5MB\n\
+            \    Skip_Long_Lines   On\n\n[INPUT]\n    Name              tail\n    Path              /var/log/containers/ztunnel-*.log\n\
+            \    multiline.parser  docker, cri\n    Tag               kube.ztunnel.*\n    Mem_Buf_Limit\
+            \     5MB\n    Skip_Long_Lines   On\n\n[INPUT]\n    Name              tail\n    Path     \
+            \         /var/log/containers/istio-ingressgateway-*.log\n    multiline.parser  docker, cri\n\
+            \    Tag               kube.ingressgw.*\n    Mem_Buf_Limit     5MB\n    Skip_Long_Lines  \
+            \ On\n\n[INPUT]\n    Name              tail\n    Path              /var/log/containers/waypoint-*.log\n\
+            \    multiline.parser  docker, cri\n    Tag               kube.waypoint.*\n    Mem_Buf_Limit\
+            \     5MB\n    Skip_Long_Lines   On\n"
+          outputs: "[OUTPUT]\n    Name    loki\n    Match   *\n    Host    loki-grafana-loki-gateway.loki.svc.cluster.local\n\
+            \    Port    80\n    tls     off\n    Labels  agent=fluent-bit, namespace=$kubernetes['namespace_name'],\
+            \ pod=$kubernetes['pod_name'], container=$kubernetes['container_name'], stream=$stream\n\n\
+            [OUTPUT]\n    Name            stdout\n    Match           kube.ztunnel.*\n    Format     \
+            \     json\n"
+        env:
+        - name: CLUSTER_ENV
+          value: home-lab
+        - name: PROJECT
+          value: home

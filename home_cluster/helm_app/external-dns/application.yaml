@@ -1,0 +1,42 @@
+# Перенесено из Terraform в ArgoCD без переустановки. Server-side dry-run по
+# всем пяти объектам чарта показал ноль отличий — усыновление прошло без
+# перезапуска пода.
+#
+# releaseName: enternal-dns — опечатка в имени релиза, сделанная при первой
+# установке. Она вшита в имена всех объектов (enternal-dns-external-dns), и
+# исправление означало бы их пересоздание, поэтому опечатка зафиксирована
+# намеренно. Само приложение называется правильно.
+#
+# Токен Cloudflare берётся из секрета в secrets.yaml рядом.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-dns
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  destination:
+    name: in-cluster
+    namespace: external-dns
+  project: default
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+  source:
+    repoURL: https://kubernetes-sigs.github.io/external-dns/
+    chart: external-dns
+    targetRevision: 1.21.1
+    helm:
+      releaseName: enternal-dns
+      valuesObject:
+        env:
+        - name: CF_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: apiKey
+              name: cloudflare-api-key
+        extraArgs:
+        - --domain-filter=local.geracorp.work
+        provider:
+          name: cloudflare
