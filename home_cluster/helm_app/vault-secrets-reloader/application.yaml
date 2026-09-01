@@ -1,0 +1,53 @@
+# Перенесено из Terraform в ArgoCD без переустановки: релиз уже стоял в
+# кластере, Application усыновляет его на месте. Server-side dry-run по всем
+# пяти объектам чарта показал ноль отличий, поэтому под не перезапускался.
+#
+# Что делает: следит за Deployment/StatefulSet/DaemonSet, помеченными
+# alpha.vault.security.banzaicloud.io/reload-on-secret-change, и перезапускает
+# их, когда в Vault меняется секрет, на который они ссылаются. Пара к
+# vault-secrets-webhook, который эти ссылки резолвит при старте пода.
+#
+# Чарт лежит в OCI-реестре — repoURL без схемы oci://, как у statedash.
+#
+# Волна 1: reloader ничего не разворачивает сам и ни от чего не зависит,
+# кроме namespace vault-infra.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault-secrets-reloader
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  destination:
+    name: in-cluster
+    namespace: vault-infra
+  project: default
+  syncPolicy:
+    # Первая синхронизация вручную — тот же порядок, что для metrics-server и
+    # seafile. Dry-run сегодня дважды недооценил радиус, так что усыновление
+    # сначала смотрим глазами, потом включаем автомат.
+    syncOptions: [CreateNamespace=true, ServerSideApply=true]
+  source:
+    repoURL: ghcr.io/bank-vaults/helm-charts
+    chart: vault-secrets-reloader
+    targetRevision: 0.5.0
+    helm:
+      valuesObject:
+        env:
+          VAULT_ADDR: https://vault-cluster.local.geracorp.work
+          VAULT_AUTH_METHOD: kubernetes
+          VAULT_PATH: talos
+          VAULT_ROLE: default
+        # Как часто собирать список рабочих нагрузок и как часто сверять
+        # версии секретов в Vault.
+        collectorSyncPeriod: 1m
+        reloaderRunPeriod: 30s
+        podSecurityContext:
+          fsGroup: 2000
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
