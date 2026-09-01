@@ -20,6 +20,10 @@ spec:
     namespace: external-dns
   project: default
   syncPolicy:
+    # Усыновление проверено: приложение Synced/Healthy, поды не перезапускались.
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
     - CreateNamespace=true
     - ServerSideApply=true
