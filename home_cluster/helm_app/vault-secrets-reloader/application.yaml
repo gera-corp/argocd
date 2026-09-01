@@ -23,9 +23,11 @@ spec:
     namespace: vault-infra
   project: default
   syncPolicy:
-    # Первая синхронизация вручную — тот же порядок, что для metrics-server и
-    # seafile. Dry-run сегодня дважды недооценил радиус, так что усыновление
-    # сначала смотрим глазами, потом включаем автомат.
+    # Усыновление проверено: под остался тот же, аптайм не сбросился,
+    # все пять объектов Synced.
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions: [CreateNamespace=true, ServerSideApply=true]
   source:
     repoURL: ghcr.io/bank-vaults/helm-charts
