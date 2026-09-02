@@ -1,0 +1,45 @@
+# Перенесено из Terraform в ArgoCD без переустановки. Server-side dry-run по
+# всем 25 объектам чарта, включая девять CRD, показал ноль отличий: ни
+# контроллер, ни speaker'ы не перезапускались.
+#
+# ── Почему ServerSideApply здесь принципиален ───────────────────────────────
+# Чарт рендерит Secret metallb-webhook-cert ПУСТЫМ и не задаёт caBundle в
+# ValidatingWebhookConfiguration: и то и другое заполняет контроллер metallb
+# уже в рантайме. Клиентский apply мог бы затереть их пустотой, и вебхук
+# перестал бы проверять IPAddressPool и L2Advertisement. При server-side apply
+# ArgoCD этих полей не объявляет, поэтому владелец у них остаётся прежний —
+# проверено dry-run'ом: после применения в секрете те же четыре ключа, а
+# caBundle у всех шести вебхуков не изменился.
+#
+# ── prune ──────────────────────────────────────────────────────────────────
+# Выключен, как и у cert-manager. Удаление CRD утащило бы за собой
+# IPAddressPool и L2Advertisement, а вместе с ними — выданные адреса
+# 192.168.1.100-102 у traefik и двух шлюзов istio. То есть весь входящий
+# трафик в кластер.
+#
+# Сами пулы лежат в pools.yaml рядом: они не часть чарта.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metallb
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  destination:
+    name: in-cluster
+    namespace: metallb-system
+  project: default
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+  source:
+    repoURL: https://metallb.github.io/metallb
+    chart: metallb
+    targetRevision: 0.16.1
+    helm:
+      valuesObject:
+        # FRR нужен только для BGP. Здесь анонс идёт через L2 (ARP), так что
+        # лишний DaemonSet на каждой ноде ни к чему.
+        frrk8s:
+          enabled: false

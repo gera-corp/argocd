@@ -1,0 +1,40 @@
+# Пул адресов и объявление их по L2. Раньше применял Terraform ресурсом
+# kubernetes_manifest; в чарт metallb это не входит, поэтому применяет
+# home-lab, а не Application metallb.
+#
+# sync-wave 2 — на волну позже самого metallb: без его CRD эти типы в кластере
+# не существуют, и на пустом кластере применение упало бы.
+# SkipDryRunOnMissingResource нужен по той же причине.
+#
+# Из этого пула выданы адреса, на которых висит весь вход в кластер:
+#   192.168.1.100  traefik
+#   192.168.1.101  istio-gateway-ingress-1
+#   192.168.1.102  istio-ingressgateway
+# Сужать диапазон, не сверившись с этим списком, нельзя — адрес за пределами
+# пула у сервиса отберут.
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: first-pool
+  namespace: metallb-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  addresses:
+  - 192.168.1.100-192.168.1.110
+---
+# L2 (ARP), а не BGP: маршрутизатор дома BGP не умеет, да и не нужен —
+# speaker просто отвечает на ARP-запросы за адрес пула с той ноды, где
+# сейчас живёт сервис.
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: home-lab
+  namespace: metallb-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  ipAddressPools:
+  - first-pool
