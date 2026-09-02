@@ -80,6 +80,10 @@ spec:
     chart: grafana-loki
     targetRevision: 6.0.6
     helm:
+      # Имя релиза из Terraform. Без него ArgoCD берёт имя приложения и
+      # разворачивает ВТОРУЮ копию loki под именами grafana-loki-*, вместо
+      # того чтобы усыновить существующую. Проверено на себе.
+      releaseName: loki
       valuesObject:
         compactor:
           networkPolicy:
