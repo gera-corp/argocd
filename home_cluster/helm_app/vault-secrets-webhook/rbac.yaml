@@ -1,0 +1,84 @@
+# То, что чарт vault-secrets-webhook не разворачивает, но без чего он
+# бесполезен. Раньше применял Terraform ресурсом kubernetes_manifest из
+# каталога manifests/, теперь — home-lab.
+#
+# ServiceAccount vault с токеном и правом читать секреты нужен не вебхуку, а
+# самому Vault: он живёт вне кластера (192.168.1.7) и через этот аккаунт
+# проверяет, что обратившийся под — действительно тот, за кого себя выдаёт.
+# Отсюда и ClusterRoleBinding на system:auth-delegator: это право звать
+# TokenReview у API-сервера.
+#
+# Sync-wave по умолчанию (0) — раньше, чем Application вебхука на волне 1:
+# без PriorityClass под вебхука не запланируется.
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: vault
+  namespace: vault-infra
+secrets:
+- name: vault-token
+---
+# Токен долгоживущий, а не projected: Vault снаружи кластера и не может
+# получить токен через механизм монтирования в под. Значение проставляет
+# контроллер токенов Kubernetes, в git его нет.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-token
+  namespace: vault-infra
+  annotations:
+    kubernetes.io/service-account.name: vault
+type: kubernetes.io/service-account-token
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: vault
+  namespace: vault-infra
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["*"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "update", "patch"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: vault
+  namespace: vault-infra
+roleRef:
+  kind: Role
+  name: vault
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: vault
+  namespace: vault-infra
+---
+# Позволяет Vault проверять клиентов через ServiceAccount'ы Kubernetes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vault-auth-delegator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+- kind: ServiceAccount
+  name: vault
+  namespace: vault-infra
+---
+# Вебхук стоит на пути создания любого пода в кластере. Если его вытеснят с
+# ноды раньше обычных нагрузок, те стартуют без подставленных секретов и
+# ошибки при этом не будет — failurePolicy у чарта Ignore. Поэтому приоритет
+# выше рядовых нагрузок.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: vault-webhook-critical
+value: 1000000
+preemptionPolicy: PreemptLowerPriority
+description: "Vault secrets webhook must start before regular workloads"

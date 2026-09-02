@@ -1,0 +1,96 @@
+# Перенесено из Terraform в ArgoCD без переустановки.
+#
+# ── Про ignoreDifferences, без них тут никак ─────────────────────────────────
+# Чарт при каждом рендере выпускает новый TLS-сертификат вебхука: в шаблоне
+# apiservice-webhook.yaml безусловно вызываются genCA и genSignedCert, а
+# lookup, которым чарт мог бы переиспользовать уже выпущенный, там нет вовсе.
+#
+# Terraform и Flux этого не замечают: helm перерендеривает только когда
+# меняются чарт или values. ArgoCD же сравнивает рендер с кластером
+# непрерывно — и без этих правил переставлял бы сертификат каждые несколько
+# минут, а приложение висело бы вечно OutOfSync.
+#
+# Игнорируются ровно три места, куда попадает сгенерированный материал:
+#   Secret ...-webhook-tls        — сам сертификат и ключ
+#   MutatingWebhookConfiguration  — caBundle, которым API-сервер проверяет вебхук
+#   Deployment                    — checksum/config, это sha256 от того же
+#                                   шаблона apiservice-webhook.yaml
+# RespectIgnoreDifferences=true нужен, чтобы selfHeal их тоже не переписывал.
+#
+# Цена решения: сертификат остаётся ручным. Текущий истекает 2027-06-09.
+# Альтернатива — certificate.useCertManager=true с certificate.generate=false:
+# тогда цепочку выпускает cert-manager и сам её продлевает, а рендер
+# становится детерминированным. Отложено осознанно.
+#
+# ── Прочее ──────────────────────────────────────────────────────────────────
+# releaseName: bank-vault — имя релиза из Terraform, оно вшито в имена всех
+# объектов. Приложение при этом названо по-человечески.
+#
+# failurePolicy у всех четырёх мутаций — Ignore (дефолт чарта). Если вебхук
+# недоступен, кластер не встаёт, но поды стартуют с буквальными строками
+# vault:secret/data/... вместо секретов, и никакой ошибки при этом нет.
+# Поэтому две реплики, PDB и priorityClassName.
+#
+# ServiceAccount vault с правами token-review, его токен и PriorityClass лежат
+# в rbac.yaml рядом: они не часть чарта, их применяет home-lab.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault-secrets-webhook
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  destination:
+    name: in-cluster
+    namespace: vault-infra
+  project: default
+  ignoreDifferences:
+  - kind: Secret
+    name: bank-vault-vault-secrets-webhook-webhook-tls
+    jsonPointers:
+    - /data
+  - group: admissionregistration.k8s.io
+    kind: MutatingWebhookConfiguration
+    name: bank-vault-vault-secrets-webhook
+    jqPathExpressions:
+    - .webhooks[].clientConfig.caBundle
+  - group: apps
+    kind: Deployment
+    name: bank-vault-vault-secrets-webhook
+    jsonPointers:
+    - /spec/template/metadata/annotations/checksum~1config
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
+  source:
+    repoURL: ghcr.io/bank-vaults/helm-charts
+    chart: vault-secrets-webhook
+    targetRevision: 1.23.1
+    helm:
+      releaseName: bank-vault
+      valuesObject:
+        configMapMutation: true
+        customResourceMutations:
+        - servicemonitors
+        env:
+          ENABLE_JSON_LOG: 'true'
+          RUN_AS_NON_ROOT: 'true'
+          RUN_AS_USER: '1000'
+          VAULT_ADDR: https://vault-cluster.local.geracorp.work
+          VAULT_ADDR_ALLOWLIST: https://vault-cluster.local.geracorp.work
+          VAULT_ALLOW_PRIVATE_ADDR: 'true'
+          VAULT_AUTH_METHOD: kubernetes
+          VAULT_PATH: talos
+          VAULT_ROLE: default
+          VAULT_SKIP_VERIFY: 'true'
+        podDisruptionBudget:
+          enabled: true
+          minAvailable: 1
+        priorityClassName: vault-webhook-critical
+        rbac:
+          authDelegatorRole:
+            enabled: true
+        replicaCount: 2
+        secretsMutation: true
