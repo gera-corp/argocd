@@ -60,6 +60,14 @@ spec:
     jsonPointers:
     - /spec/template/metadata/annotations/checksum~1config
   syncPolicy:
+    # Усыновление проверено: сертификат и caBundle не изменились (sha256
+    # совпали до и после), поды не перезапускались, вебхук после синхронизации
+    # по-прежнему впрыскивает copy-vault-env и подменяет команду на
+    # /vault/vault-env — проверено server-side dry-run'ом пода с ссылкой
+    # vault:secret/data/...
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
     - CreateNamespace=true
     - ServerSideApply=true
