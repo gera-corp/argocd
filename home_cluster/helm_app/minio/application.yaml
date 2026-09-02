@@ -1,0 +1,82 @@
+# Перенесено из Terraform в ArgoCD без переустановки. Server-side dry-run по
+# всем восьми объектам чарта показал ноль отличий, под не перезапускался.
+#
+# ── Здесь лежит фундамент, а не просто ещё один сервис ───────────────────────
+# В этом MinIO три бакета: tfstate (состояние ВСЕГО Terraform), loki (чанки
+# логов) и vault-backup (снимки Vault). Уронив его, теряешь заодно возможность
+# чинить инфраструктуру терраформом — он не сможет прочитать свой же state.
+# Поэтому любые операции здесь делаются, пока MinIO жив, а не после.
+#
+# ── auth.existingSecret вместо пароля в values ───────────────────────────────
+# В values релиза пароль root лежал открытым текстом (auth.rootPassword).
+# Тащить его в git не стали: чарт направлен на уже существующий секрет minio с
+# ключами root-user и root-password, и Secret из рендера исчезает совсем.
+#
+# ИЗВЕСТНЫЙ ПРОБЕЛ: сам секрет теперь не описан нигде. Раньше его рендерил
+# helm, сейчас — никто, он просто лежит в кластере. Пересборка с нуля из git
+# его не создаст. Закрывается так:
+#   vault kv put secret/minio root_user=... root_password=...   (сначала
+#     прочитать путь — kv put затирает секрет целиком)
+#   и рядом secrets.yaml с ссылками vault:secret/data/minio#...
+# Сейчас это не сделано: у токена нет прав на secret/, а Vault живёт вне
+# кластера (192.168.1.7), root-токен оттуда не достать.
+#
+# ── Класс хранилища ─────────────────────────────────────────────────────────
+# nfs-csi, хотя в values релиза оставался удалённый openmediavault-nfs-client.
+# С ним apply падал: spec у связанного PVC неизменяем. Живой том давно на
+# nfs-csi — его пересоздали при миграции на CSI, а values не обновили.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio
+  annotations:
+    argocd.argoproj.io/sync-wave: '2'
+spec:
+  destination:
+    name: in-cluster
+    namespace: minio
+  project: default
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+  source:
+    repoURL: registry-1.docker.io/bitnamicharts
+    chart: minio
+    targetRevision: 16.0.10
+    helm:
+      valuesObject:
+        apiIngress:
+          enabled: true
+          hostname: api-minio.local.geracorp.work
+          ingressClassName: traefik
+          path: /
+          servicePort: minio-api
+          tls: true
+        auth:
+          existingSecret: minio
+        extraEnvVars:
+        - name: MINIO_SERVER_URL
+          value: https://api-minio.local.geracorp.work
+        - name: MINIO_BROWSER_REDIRECT_URL
+          value: https://minio.local.geracorp.work
+        global:
+          defaultStorageClass: nfs-csi
+          security:
+            allowInsecureImages: true
+        image:
+          registry: docker.io
+          repository: bitnamilegacy/minio
+          tag: 2025.4.22-debian-12-r1
+        ingress:
+          enabled: true
+          hostname: minio.local.geracorp.work
+          ingressClassName: traefik
+          path: /
+          servicePort: minio-console
+          tls: true
+        podAnnotations:
+          prometheus.io/path: /minio/v2/metrics/cluster
+          prometheus.io/port: '9000'
+          prometheus.io/scrape: 'true'
+        resourcesPreset: medium
