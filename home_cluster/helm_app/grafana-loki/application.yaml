@@ -1,0 +1,155 @@
+# Перенесено из Terraform в ArgoCD без переустановки. Server-side dry-run по
+# всем 32 объектам чарта показал ноль отличий — ни один под не перезапускается.
+#
+# ── NetworkPolicy отключены осознанно ───────────────────────────────────────
+# Чарт рендерит восемь политик, и в сохранённом манифесте helm-релиза они есть.
+# А в кластере их нет: кто-то удалил их руками уже после последнего
+# helm upgrade (28.10.2025). Включать их обратно вслепую нельзя — неизвестно,
+# что именно ими сломали. Поэтому networkPolicy.enabled: false у всех тринадцати
+# секций, чтобы рендер совпадал с реальностью. Захочешь их вернуть — это
+# отдельная задача с проверкой, что fluent-bit по-прежнему пишет в шлюз.
+#
+# ── loki.existingConfigmap вместо конфига в values ──────────────────────────
+# В loki.overrideConfiguration был зашит URL с ключом доступа к MinIO:
+#   s3: https://ACCESS:SECRET@api-minio.local.geracorp.work/loki
+# Тащить это в git не стали. Чарт направлен на уже существующий ConfigMap
+# loki-grafana-loki, и конфиг из рендера исчезает.
+#
+# ИЗВЕСТНЫЙ ПРОБЕЛ, такой же как у minio: сам ConfigMap теперь не описан нигде,
+# пересборка с нуля из git его не создаст. Закрывать через Vault, когда
+# появится доступ на запись в secret/.
+#
+# Побочный эффект: checksum/config у пяти нагрузок считается по конфигу из
+# рендера, а он теперь пуст, — поэтому аннотация игнорируется. Механизм
+# перезапуска при смене конфига с внешним ConfigMap всё равно не работает, так
+# что не теряется ничего, чего бы уже не потеряли.
+#
+# ── Класс хранилища ─────────────────────────────────────────────────────────
+# nfs-csi, хотя в values релиза оставался удалённый openmediavault-nfs-client.
+# volumeName у PVC игнорируется по тем же причинам, что у minio: чарт его не
+# рендерит, а у привязанного тома spec неизменяем.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana-loki
+  annotations:
+    argocd.argoproj.io/sync-wave: '3'
+spec:
+  destination:
+    name: in-cluster
+    namespace: loki
+  project: default
+  ignoreDifferences:
+  - group: ''
+    kind: PersistentVolumeClaim
+    jsonPointers:
+    - /spec/volumeName
+    - /spec/storageClassName
+  - group: apps
+    kind: Deployment
+    name: loki-grafana-loki-compactor
+    jsonPointers:
+    - /spec/template/metadata/annotations/checksum~1config
+  - group: apps
+    kind: Deployment
+    name: loki-grafana-loki-distributor
+    jsonPointers:
+    - /spec/template/metadata/annotations/checksum~1config
+  - group: apps
+    kind: Deployment
+    name: loki-grafana-loki-query-frontend
+    jsonPointers:
+    - /spec/template/metadata/annotations/checksum~1config
+  - group: apps
+    kind: StatefulSet
+    name: loki-grafana-loki-ingester
+    jsonPointers:
+    - /spec/template/metadata/annotations/checksum~1config
+  - group: apps
+    kind: StatefulSet
+    name: loki-grafana-loki-querier
+    jsonPointers:
+    - /spec/template/metadata/annotations/checksum~1config
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
+  source:
+    repoURL: registry-1.docker.io/bitnamicharts
+    chart: grafana-loki
+    targetRevision: 6.0.6
+    helm:
+      valuesObject:
+        compactor:
+          networkPolicy:
+            enabled: false
+        distributor:
+          networkPolicy:
+            enabled: false
+        gateway:
+          image:
+            repository: bitnamilegacy/nginx
+          networkPolicy:
+            enabled: false
+          service:
+            nginx:
+              config: client_max_body_size 50M;
+        global:
+          security:
+            allowInsecureImages: true
+          storageClass: nfs-csi
+        grafanaalloy:
+          alloy:
+            containerSecurityContext:
+              allowPrivilegeEscalation: true
+              enabled: true
+              privileged: true
+              readOnlyRootFilesystem: false
+              runAsGroup: 0
+              runAsNonRoot: false
+              runAsUser: 0
+              seLinuxOptions: {}
+          enabled: false
+        indexGateway:
+          networkPolicy:
+            enabled: false
+        ingester:
+          networkPolicy:
+            enabled: false
+        loki:
+          existingConfigmap: loki-grafana-loki
+          image:
+            repository: bitnamilegacy/grafana-loki
+        memcachedchunks:
+          image:
+            repository: bitnamilegacy/memcached
+          networkPolicy:
+            enabled: false
+          resourcesPreset: small
+        memcachedfrontend:
+          image:
+            repository: bitnamilegacy/memcached
+          networkPolicy:
+            enabled: false
+          resourcesPreset: small
+        memcachedindexqueries:
+          networkPolicy:
+            enabled: false
+        querier:
+          networkPolicy:
+            enabled: false
+          resourcesPreset: medium
+        queryFrontend:
+          networkPolicy:
+            enabled: false
+          resourcesPreset: small
+        queryScheduler:
+          networkPolicy:
+            enabled: false
+        ruler:
+          networkPolicy:
+            enabled: false
+        tableManager:
+          networkPolicy:
+            enabled: false
