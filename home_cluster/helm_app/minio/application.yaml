@@ -37,6 +37,16 @@ spec:
     namespace: minio
   project: default
   syncPolicy:
+    # Усыновление проверено: под не перезапускался, PVC остался привязан к
+    # csi-minio-minio, все три бакета на месте, api-minio отвечает 200.
+    #
+    # prune выключен намеренно. Прунить тут нечего при закреплённой версии
+    # чарта, но если он однажды перестанет рендерить PVC, ArgoCD снесёт его и
+    # положит MinIO — а вместе с ним доступ к state всего Terraform. Данные
+    # переживут (у PV политика Retain), но чинить придётся руками.
+    automated:
+      prune: false
+      selfHeal: true
     syncOptions:
     - CreateNamespace=true
     - ServerSideApply=true
