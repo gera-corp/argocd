@@ -30,6 +30,12 @@ spec:
     namespace: metallb-system
   project: default
   syncPolicy:
+    # Усыновление проверено: адреса 192.168.1.100-102 не сдвинулись, поды
+    # контроллера и шести speaker'ов не перезапускались, caBundle и ключи
+    # в metallb-webhook-cert остались прежними.
+    automated:
+      prune: false
+      selfHeal: true
     syncOptions:
     - CreateNamespace=true
     - ServerSideApply=true
