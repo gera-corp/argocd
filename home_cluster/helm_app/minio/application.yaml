@@ -40,6 +40,18 @@ spec:
     syncOptions:
     - CreateNamespace=true
     - ServerSideApply=true
+    # Без этого sync игнорирует ignoreDifferences и всё равно пытается
+    # обнулить volumeName у привязанного PVC.
+    - RespectIgnoreDifferences=true
+  ignoreDifferences:
+    # Том усыновлён CSI-драйвером статически. volumeName проставляется при
+    # привязке и в чарте его быть не может, а у связанного PVC spec неизменяем:
+    # первая же синхронизация упала с "Forbidden: spec is immutable".
+    - group: ""
+      kind: PersistentVolumeClaim
+      jsonPointers:
+      - /spec/volumeName
+      - /spec/storageClassName
   source:
     repoURL: registry-1.docker.io/bitnamicharts
     chart: minio
