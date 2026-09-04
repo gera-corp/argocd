@@ -2,9 +2,9 @@
 # см. docs/migrations/2026-09-04-jenkins-helm-chart-design.md.
 #
 # Том с данными переехал вместе с релизом, без копирования: PVC jenkins-pv
-# остался собственным манифестом в home_cluster/jenkins/pvc.yaml, потому что
-# привязан к PV по volumeName, а это поле чарт не рендерит вообще. Чарт
-# получает его через persistence.existingClaim.
+# остался собственным манифестом в pvc.yaml рядом, потому что привязан к PV
+# по volumeName, а это поле чарт не рендерит вообще. Чарт получает его
+# через persistence.existingClaim.
 #
 # Две настройки ниже удерживают init-контейнер чарта от разрушения JENKINS_HOME
 # и обязаны оставаться выключенными: overwritePlugins сносит plugins/*,

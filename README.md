@@ -14,7 +14,7 @@ described here — see [What is not here](#what-is-not-here) for the exceptions.
 | Path | What lives there |
 | --- | --- |
 | `home_cluster/` | Plain manifests, applied straight from the repository |
-| `home_cluster/helm_app/` | `Application` objects pointing at upstream Helm charts |
+| `home_cluster/helm_app/` | One directory per release: the `Application` pointing at an upstream Helm chart, together with any plain manifests the chart does not render — issuers, address pools, secrets, ingress routes |
 | `home_cluster/storage/` | Static `PersistentVolume`s adopted by the NFS CSI driver |
 | `telebot/` | kustomize overlay; the image tag is written back into `.argocd-source-telebot.yaml` by Argo CD Image Updater |
 | `docs/migrations/` | Write-ups of one-off migrations, kept for the reasoning rather than for reuse |

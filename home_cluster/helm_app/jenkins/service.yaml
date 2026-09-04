@@ -1,6 +1,6 @@
 # Service контроллера (jenkins) и агент-листенера (jenkins-agent) создаёт
-# Helm-чарт, см. home_cluster/helm_app/jenkins/application.yaml. Здесь
-# остались только объекты, которых в чарте нет.
+# Helm-чарт, см. application.yaml рядом. Здесь остались только объекты,
+# которых в чарте нет.
 ---
 # NodePort для packer: агент публикует свой HTTP-сервер на containerPort 8336,
 # сюда ходят снаружи кластера. Селектор ловит поды агентов по метке

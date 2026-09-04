@@ -82,7 +82,16 @@ namespace `jenkins`, sync-wave `3`, `prune` + `selfHeal` + `ServerSideApply`,
 ConfigMap `jenkins` с JCasC и `plugins.txt`, ServiceAccount `jenkins-admin`,
 Role и RoleBinding `jenkins-schedule-agents`.
 
-В `home_cluster/jenkins/` остаётся:
+Плоскими манифестами остаётся четыре объекта. Ниже они описаны в
+`home_cluster/jenkins/` — там они и были созданы при миграции; **сразу после
+переезда все три файла перенесены в `home_cluster/helm_app/jenkins/`**, к
+Application, а пустой каталог удалён. Так устроено большинство релизов в этом
+репозитории: рядом с Application лежат объекты, которых нет в чарте (см.
+`cert-manager/issuers.yaml`, `metallb/pools.yaml`, `statedash/namespace.yaml`).
+Для ArgoCD перенос ничего не значит — объекты отслеживаются по
+`<app>:<Kind>:<ns>/<name>`, без пути к файлу.
+
+Итак, вне чарта остаётся:
 
 - **`pvc.yaml`** — PVC `jenkins-pv`, вынесенный из `jenkins.yaml`;
 - `secrets.yaml` — без изменений;
