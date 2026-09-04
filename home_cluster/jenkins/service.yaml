@@ -1,47 +1,11 @@
+# Service контроллера (jenkins) и агент-листенера (jenkins-agent) создаёт
+# Helm-чарт, см. home_cluster/helm_app/jenkins/application.yaml. Здесь
+# остались только объекты, которых в чарте нет.
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: jenkins-http
-  namespace: jenkins
-spec:
-  ports:
-    - port: 8080
-      protocol: TCP
-      targetPort: jenkins-http
-  selector:
-    app: jenkins
-  type: ClusterIP
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: jenkins-local-tls
-  namespace: jenkins
-spec:
-  entryPoints:
-    - websecure
-  routes:
-  - match: Host(`jenkins.local.geracorp.work`)
-    kind: Rule
-    services:
-    - name: jenkins-http
-      port: 8080
-  tls: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: jenkins-agent
-  namespace: jenkins
-spec:
-  ports:
-    - port: 50000
-      protocol: TCP
-      targetPort: jenkins-agent
-  selector:
-    app: jenkins
----
+# NodePort для packer: агент публикует свой HTTP-сервер на containerPort 8336,
+# сюда ходят снаружи кластера. Селектор ловит поды агентов по метке
+# jenkins/label, которую ставит kubernetes-плагин, — от переезда на чарт
+# это не зависит.
 apiVersion: v1
 kind: Service
 metadata:
@@ -56,3 +20,21 @@ spec:
       nodePort: 30336
   selector:
     jenkins/label: jenkins-nomad-worker
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: jenkins-local-tls
+  namespace: jenkins
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`jenkins.local.geracorp.work`)
+    kind: Rule
+    services:
+    # Раньше был jenkins-http из самописного манифеста; чарт называет
+    # сервис контроллера по имени релиза.
+    - name: jenkins
+      port: 8080
+  tls: {}

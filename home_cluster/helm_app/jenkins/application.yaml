@@ -1,0 +1,294 @@
+# Jenkins переведён с самописных манифестов на официальный чарт 2026-09-04,
+# см. docs/migrations/2026-09-04-jenkins-helm-chart-design.md.
+#
+# Том с данными переехал вместе с релизом, без копирования: PVC jenkins-pv
+# остался собственным манифестом в home_cluster/jenkins/pvc.yaml, потому что
+# привязан к PV по volumeName, а это поле чарт не рендерит вообще. Чарт
+# получает его через persistence.existingClaim.
+#
+# Две настройки ниже удерживают init-контейнер чарта от разрушения JENKINS_HOME
+# и обязаны оставаться выключенными: overwritePlugins сносит plugins/*,
+# JCasC.overwriteConfiguration — config.xml и *configuration*.xml. Обе выключены
+# по умолчанию и здесь не переопределяются намеренно.
+#
+# podSecurityContextOverride повторяет контекст старого Deployment. Дефолтный
+# fsGroup чарта — 1000, а корень тома root:472; у драйвера nfs.csi.k8s.io
+# fsGroupPolicy: File, поэтому дефолт заставил бы kubelet рекурсивно сменить
+# группу на 3296 файлах по NFS при каждом несовпадении.
+#
+# Имя ServiceAccount оставлено прежним (jenkins-admin): к нему может быть
+# привязана роль Vault auth/talos/role/default, которой пользуется
+# vaultKubernetesCredential ниже.
+#
+# podTemplate агента задан сырым YAML, а не через agent.*, из-за hostPort 30001
+# у jnlp-контейнера — шаблон jenkins.casc.podTemplate порты на jnlp не рендерит.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jenkins
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  destination:
+    name: in-cluster
+    namespace: jenkins
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions: [CreateNamespace=true, ServerSideApply=true]
+  source:
+    repoURL: https://charts.jenkins.io
+    chart: jenkins
+    targetRevision: 5.9.*
+    helm:
+      releaseName: jenkins
+      valuesObject:
+        clusterZone: cluster.local
+
+        controller:
+          image:
+            registry: docker.io
+            repository: jenkins/jenkins
+            tag: 2.568.3-lts-jdk25
+            pullPolicy: IfNotPresent
+          testEnabled: false
+          podSecurityContextOverride:
+            runAsUser: 1000
+            runAsNonRoot: true
+            fsGroup: 472
+            supplementalGroups: [0]
+            fsGroupChangePolicy: OnRootMismatch
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2048Mi
+            requests:
+              cpu: "0.2"
+              memory: 1024Mi
+          jenkinsUrl: https://jenkins.local.geracorp.work
+          numExecutors: 2
+          customJenkinsLabels: [master]
+          legacyRemotingSecurityEnabled: true
+          cloudName: Kubernetes
+          serviceType: ClusterIP
+          installLatestPlugins: false
+          installPlugins:
+            - ansicolor:542.v03d235fee02d
+            - apache-httpcomponents-client-5-api:5.6.4-204.vfa_29df89ffcf
+            - commons-collections4-api:4.5.0-8.va_d5448ef9011
+            - dark-theme:652.vea_da_dfea_e769
+            - favorite:2.267.vb_90d08408081
+            - github-branch-source:1983.vfa_27ed961853
+            - hashicorp-vault-plugin:384.vda_86ec66c537
+            - javax-mail-api:1.6.2-11
+            - job-dsl:3732.v9a_c49a_61a_313
+            - kubernetes:4547.v52f3080db_8cd
+            - ldap:825.v2fca_37dd5b_cb_
+            - matrix-auth:3.3
+            - pipeline-build-step:601.v6d4c6d1a_9dc7
+            - pipeline-milestone-step:152.v6e22b_8cfc66c
+            - pipeline-model-definition:2.2293.v6e7193cec599
+            - pipeline-stage-view:2.41
+            - timestamper:1.30
+            - uno-choice:2.8.10
+          containerEnv:
+            - name: LDAP_USER
+              value: vault:secret/data/lldap#bind_jenkins_user
+            - name: LDAP_USER_PASS
+              value: vault:secret/data/lldap#bind_jenkins_password
+          sidecars:
+            configAutoReload:
+              enabled: false
+          admin:
+            createSecret: false
+          JCasC:
+            defaultConfig: true
+            authorizationStrategy: |-
+              projectMatrix:
+                entries:
+                - group:
+                    name: "jenkins-admin"
+                    permissions:
+                    - "Overall/Administer"
+                - group:
+                    name: "jenkins-users"
+                    permissions:
+                    - "Job/Build"
+                    - "Job/Read"
+                    - "Overall/Read"
+            securityRealm: |-
+              ldap:
+                configurations:
+                - displayNameAttributeName: "cn"
+                  inhibitInferRootDN: false
+                  managerDN: "uid=${LDAP_USER},ou=people,dc=geracorp,dc=local"
+                  managerPasswordSecret: "${LDAP_USER_PASS}"
+                  rootDN: "dc=geracorp,dc=local"
+                  server: "lldap-service.lldap.svc.cluster.local:3890"
+                  userSearch: "(&(uid={0})(|(memberOf=cn=jenkins-users,ou=groups,dc=geracorp,dc=local)(memberOf=cn=jenkins-admin,ou=groups,dc=geracorp,dc=local)))"
+                disableMailAddressResolver: false
+                disableRolePrefixing: true
+                groupIdStrategy: "caseInsensitive"
+                userIdStrategy: "caseInsensitive"
+            configScripts:
+              globals: |
+                jenkins:
+                  disabledAdministrativeMonitors:
+                  - "hudson.util.DoubleLaunchChecker"
+                  globalNodeProperties:
+                  - envVars:
+                      env:
+                      - key: "PROXMOX_ADDR"
+                        value: "https://proxmox.home.local:8006"
+                      - key: "VAULT_ADDR"
+                        value: "https://vault-cluster.local.geracorp.work"
+                appearance:
+                  themeManager:
+                    disableUserThemes: true
+                    theme: "darkSystem"
+                security:
+                  gitHostKeyVerificationConfiguration:
+                    sshHostKeyVerificationStrategy: "noHostKeyVerificationStrategy"
+                unclassified:
+                  ansiColorBuildWrapper:
+                    globalColorMapName: "xterm"
+                  hashicorpVault:
+                    configuration:
+                      disableChildPoliciesOverride: false
+                      engineVersion: 2
+                      vaultCredentialId: "vault_auth"
+                      vaultUrl: "https://vault-cluster.local.geracorp.work"
+
+              credentials: |
+                credentials:
+                  system:
+                    domainCredentials:
+                    - credentials:
+                      - vaultUsernamePasswordCredentialImpl:
+                          engineVersion: 2
+                          id: jenkins-github-integration
+                          passwordKey: password
+                          path: secret/jenkins/credentials/jenkins-github-integration
+                          scope: GLOBAL
+                          usernameKey: username
+                      - vaultSSHUserPrivateKeyImpl:
+                          engineVersion: 2
+                          id: github_jenkins_deploy_key
+                          passphraseKey: passphrase
+                          path: secret/jenkins/credentials/github_jenkins
+                          privateKeyKey: private_key
+                          scope: GLOBAL
+                          usernameKey: username
+                      - vaultSSHUserPrivateKeyImpl:
+                          engineVersion: 2
+                          id: github_packer_proxmox_deploy_key
+                          passphraseKey: passphrase
+                          path: secret/jenkins/credentials/github_packer_proxmox
+                          privateKeyKey: private_key
+                          scope: GLOBAL
+                          usernameKey: username
+                      - vaultStringCredentialImpl:
+                          engineVersion: 2
+                          id: proxmox_api_user
+                          path: secret/jenkins/credentials/proxmox_credentials
+                          scope: GLOBAL
+                          vaultKey: proxmox_api_user
+                      - vaultStringCredentialImpl:
+                          engineVersion: 2
+                          id: proxmox_api_password
+                          path: secret/jenkins/credentials/proxmox_credentials
+                          scope: GLOBAL
+                          vaultKey: proxmox_api_password
+                      - vaultStringCredentialImpl:
+                          engineVersion: 2
+                          id: proxmox_api_token_id_proxmox_api_token_secret
+                          path: secret/jenkins/credentials/proxmox_credentials
+                          scope: GLOBAL
+                          vaultKey: proxmox_api_token_id_proxmox_api_token_secret
+                      - vaultStringCredentialImpl:
+                          engineVersion: 2
+                          id: vault_token
+                          path: secret/jenkins/credentials/jenkins-workers
+                          scope: GLOBAL
+                          vaultKey: token
+                      - vaultKubernetesCredential:
+                          id: vault_auth
+                          mountPath: talos
+                          role: default
+                          scope: GLOBAL
+                          usePolicies: false
+              jobs: |
+                jobs:
+                - script: |
+                    job('seedjob') {
+                      label('master')
+                      logRotator(-1, 10)
+                      scm {
+                          git {
+                            branch('master')
+                            remote {
+                              github('gera-corp/jenkins', 'ssh', 'github.com')
+                              credentials('github_jenkins_deploy_key')
+                            }
+                          }
+                      }
+                      triggers {
+                          githubPush()
+                      }
+                      steps {
+                        dsl {
+                          external('jobDSL/seedJob.groovy')
+                        }
+                      }
+                      properties {
+                        authorizationMatrix {
+                          inheritanceStrategy {
+                              nonInheriting()
+                          }
+                          entries {
+                            group {
+                              name('jenkins-admin')
+                              permissions([ 'Job/Build', 'Job/Configure', 'Job/Read' ])
+                            }
+                          }
+                        }
+                      }
+                    }
+        persistence:
+          enabled: true
+          existingClaim: jenkins-pv
+
+        serviceAccount:
+          create: true
+          name: jenkins-admin
+
+        agent:
+          enabled: true
+          disableDefaultAgent: true
+          containerCap: 10
+          jenkinsUrl: "http://jenkins:8080"
+          jenkinsTunnel: "jenkins-agent:50000"
+          podTemplates:
+            jenkins-agent: |
+              - containers:
+                - image: "docker-registry.local.geracorp.work/tools/jenkins-agent:v1.1.7"
+                  livenessProbe:
+                    failureThreshold: 0
+                    initialDelaySeconds: 0
+                    periodSeconds: 0
+                    successThreshold: 0
+                    timeoutSeconds: 0
+                  name: "jnlp"
+                  ports:
+                  - containerPort: 8336
+                    hostPort: 30001
+                    name: "jenkins-agt-pk"
+                  workingDir: "/home/jenkins/agent"
+                imagePullSecrets:
+                - name: "docker-registry-geracorp-login"
+                label: "jenkins-nomad-worker"
+                name: "jenkins-agent"
+                namespace: "jenkins"
+                yamlMergeStrategy: "override"

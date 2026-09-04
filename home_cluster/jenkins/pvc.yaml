@@ -1,0 +1,21 @@
+# Claim вынесен из jenkins.yaml, когда Jenkins переехал на Helm-чарт
+# (2026-09-04). Чарту он не отдан и отдан быть не может: том усыновлён
+# статически, PVC привязан к конкретному PV через volumeName, а этого поля
+# чарт не рендерит вообще — без него claim уехал бы на пустой динамический
+# том. Чарт получает его через persistence.existingClaim.
+#
+# Сам PV описан в home_cluster/storage/persistent-volumes.yaml,
+# reclaimPolicy: Retain — удаление claim'а каталог на NFS не трогает.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-pv
+  namespace: jenkins
+spec:
+  storageClassName: nfs-csi
+  volumeName: csi-jenkins-jenkins-pv
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5G

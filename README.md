@@ -30,7 +30,7 @@ dependency order:
 | 0 | csi-driver-nfs | every `PersistentVolumeClaim` in the cluster depends on it |
 | 1 | cert-manager, metallb, metrics-server, external-dns, the two bank-vaults components | CRDs, LoadBalancer addresses and secret injection have to exist before anything asks for them |
 | 2 | minio, fluent-bit, the cert-manager `ClusterIssuer`s | need the CRDs from wave 1 |
-| 3 | traefik, kube-prometheus-stack, seafile, grafana-loki, the exporters | ingress, certificates and object storage are all in place by now |
+| 3 | traefik, kube-prometheus-stack, seafile, grafana-loki, jenkins, the exporters | ingress, certificates and object storage are all in place by now |
 
 Most applications sync automatically with `prune`, `selfHeal` and
 `ServerSideApply`. Three of them deliberately run with **`prune: false`**, and
@@ -100,8 +100,9 @@ Applications that own a claim therefore ignore that field explicitly; see
   BlueVPS VPN box and the home PCs. Alertmanager notifies over Telegram
 - [Docker Registry](https://github.com/distribution/distribution) with
   [Docker Registry UI](https://github.com/Joxit/docker-registry-ui)
-- [Jenkins](https://www.jenkins.io/) — plugins installed by an init container,
-  configured through JCasC, agents run as dynamic pods in the cluster
+- [Jenkins](https://www.jenkins.io/) — the upstream Helm chart with plugin
+  versions pinned in `valuesObject`, configured through JCasC, agents run as
+  dynamic pods in the cluster
 - [lldap](https://github.com/lldap/lldap) — light LDAP implementation used for
   authentication
 - [InfluxDB](https://www.influxdata.com/) 2.x — holds the `proxmox` bucket
