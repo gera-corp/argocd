@@ -853,6 +853,13 @@ kubectl -n jenkins-test get pod jenkins-0 -o jsonpath='{.spec.initContainers[*].
 Ожидается `statefulset rolling update complete` и среди init-контейнеров —
 `copy-vault-env` (его добавил webhook) вместе с `init`.
 
+При `kubectl apply` здесь прилетит предупреждение PodSecurity про
+`restricted:latest` — под чарта не выставляет `capabilities.drop: [ALL]`
+и `seccompProfile`. Это только предупреждение и только в `jenkins-test`:
+у namespace нет меток PSA, поэтому действует дефолт кластера. У боевого
+`jenkins` стоит `pod-security.kubernetes.io/enforce: privileged`, так что
+на кате под будет допущен. Проверено 2026-09-04.
+
 Если под не поднялся — смотреть `kubectl -n jenkins-test logs jenkins-0 -c init`
 и `-c jenkins`. Самый вероятный виновник — `readOnlyRootFilesystem: true`;
 проверяется снятием этого ограничения:
@@ -866,7 +873,6 @@ kubectl -n jenkins-test exec jenkins-0 -c jenkins -- sh -c '
   echo "plugins: $(ls /var/jenkins_home/plugins/*.jpi | wc -l)"
   echo "jobs:    $(ls /var/jenkins_home/jobs | tr "\n" " ")"
   echo "casc:    $(ls /var/jenkins_home/casc_configs | tr "\n" " ")"
-  echo "ldap_user_resolved: $([ -n "$LDAP_USER" ] && [ "${LDAP_USER#vault:}" = "$LDAP_USER" ] && echo yes || echo NO)"
 '
 ```
 Ожидается:
@@ -874,11 +880,25 @@ kubectl -n jenkins-test exec jenkins-0 -c jenkins -- sh -c '
 plugins: 96
 jobs:    Proxmox seedjob
 casc:    credentials.yaml globals.yaml jcasc-default-config.yaml
-ldap_user_resolved: yes
 ```
-`ldap_user_resolved: NO` означает, что `vault-env` не подставил значение —
-инжект bank-vaults сломался о `readOnlyRootFilesystem`, разбираться по Шагу 3.
 `jobs.yaml` в `casc_configs` отсутствует намеренно — он убран для инертности.
+
+Отдельно — сработал ли инжект bank-vaults, то есть не подрался ли новый
+`readOnlyRootFilesystem: true` с `vault-env`:
+
+```bash
+kubectl -n jenkins-test exec jenkins-0 -c jenkins -- \
+  grep -c "vault:secret" /var/jenkins_home/config.xml || echo 0
+```
+Ожидается `0`: JCasC записал в `config.xml` уже разрешённые значения.
+Если больше нуля — в конфиг попала сырая `vault:`-ссылка, инжект не сработал,
+разбираться по Шагу 3.
+
+**Не проверять это через `echo $LDAP_USER` в `kubectl exec`** — там всегда будет
+сырая `vault:`-ссылка, и проверка ложно провалится. `vault-env` подставляет
+переменные только в процессе, который запускает сам; `kubectl exec` порождает
+новый процесс с исходным окружением из спеки пода. Смотреть надо на результат
+работы Jenkins, а не на окружение произвольного процесса в контейнере.
 
 - [ ] **Шаг 5: Проверить, что Jenkins отвечает и LDAP-realm поднялся**
 
