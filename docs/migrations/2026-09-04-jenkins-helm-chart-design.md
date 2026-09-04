@@ -103,8 +103,11 @@ ArgoCD его пропрунит, PV уйдёт в `Released`, и `existingClaim
 прежним именем: `serviceAccount.create: true`, `name: jenkins-admin`.
 
 Побочное расхождение: старая Role даёт `secrets: get`, чартовая
-`jenkins-schedule-agents` — нет. Все credentials приходят из Vault, у kubernetes-облака
-`credentialsId` пустой, так что право выглядит мёртвым. **Проверить до ката.**
+`jenkins-schedule-agents` — нет. Право мёртвое: в `credentials.xml` нет ни одного
+credential типа `plugins.kubernetes` (проверено 2026-09-04, совпадений 0), а у
+kubernetes-облака `credentialsId` пустой — то есть Secret'ы кластера Jenkins
+не читает. Перепроверяется одной командой перед катом; если когда-нибудь
+появится credential этого типа, в values понадобится `rbac.readSecrets: true`.
 
 ## Три места, где сознательно отходим от дефолтов чарта
 
@@ -255,18 +258,25 @@ ConfigMap, Role, RoleBinding, два Service и StatefulSet. PVC чарт не �
 
 ## Порядок ката
 
-1. **Бэкап.** На OMV `cp -a` каталога тома рядом. 590 МБ, дело секунд. PV и так
-   `Retain`, но копия страхует не от удаления claim'а, а от порчи данных —
-   кривого chown или двух Jenkins на одном томе.
+Копий делается две, и это не перестраховка — у них разные роли.
+
+1. **Копия для обкатки.** `cp -a` каталога тома рядом, при живом Jenkins.
+   Копирование идёт подом внутри кластера через временный PV на корень
+   экспорта `/k8s-storage`, а не по SSH на OMV. Копия crash-consistent —
+   для обкатки (см. ниже) этого достаточно, под откат она не годится.
 2. **Погасить Deployment вручную:** `kubectl -n jenkins scale deploy/jenkins
    --replicas=0`, дождаться исчезновения пода.
-3. Смержить ветку в `main` одним коммитом.
-4. ArgoCD синкает: пруном уходят Deployment, ConfigMap, старые Role и
+3. **Бэкап под откат.** Второй `cp -a`, уже при остановленном сервисе, то есть
+   целостный. 590 МБ, дело секунд. PV и так `Retain`, но копия страхует не от
+   удаления claim'а, а от порчи данных — кривого chown или двух Jenkins на
+   одном томе.
+4. Смержить ветку в `main` одним коммитом.
+5. ArgoCD синкает: пруном уходят Deployment, ConfigMap, старые Role и
    RoleBinding, два Service; поднимается StatefulSet.
-5. Проверка (ниже).
-6. Убрать копию тома с OMV, когда всё устоится.
+6. Проверка (ниже).
+7. Убрать обе копии и временные объекты, когда всё устоится.
 
-### Критический порядок: шаг 2 идёт до шага 3
+### Критический порядок: шаг 2 идёт до шага 4
 
 Deployment `jenkins` и StatefulSet `jenkins` — объекты разных типов. Они не
 вытесняют друг друга и спокойно существуют рядом, а том у них один. Два живых
@@ -281,13 +291,24 @@ Deployment, но не раньше, чем создаст новый StatefulSet
 
 Перед катом развернуть чарт в отдельном namespace `jenkins-test` поверх **копии**
 данных, сделанной на шаге 1: второй статический PV на каталог копии, свой PVC,
-тот же Application с изменёнными namespace и claim.
+те же values через `helm template | kubectl apply`.
 
 Это проверяет главное, чего не покажет ни один `helm template`: что Jenkins
 поднимается на существующем `JENKINS_HOME`, что init-контейнер не портит
-плагины, что LDAP и Vault отвечают, что `readOnlyRootFilesystem: true` (новое
+плагины, что LDAP-realm встаёт и что `readOnlyRootFilesystem: true` (новое
 ограничение, у нынешнего Deployment'а его нет) не конфликтует с инжектом
-`vault-env` от bank-vaults.
+`vault-env` от bank-vaults. Webhook bank-vaults покрывает все namespace кроме
+`kube-system` и `vault-infra`, так что инжект в `jenkins-test` будет настоящим.
+
+Инстанс обязан быть **инертным**: `numExecutors: 0`, `agent.enabled: false`
+и блок `jobs` из JCasC убран. Иначе второй Jenkins с той же историей сборок
+полез бы наружу — в GitHub и за агентами в namespace `jenkins`.
+
+Чего эта обкатка не проверяет: resolve credentials из Vault. `vaultKubernetesCredential`
+аутентифицируется по ServiceAccount, а роль привязана к namespace `jenkins`,
+так что в `jenkins-test` она вправе не сработать — это ничего не говорит
+о том, как будет в бою. Агенты не проверяются тоже, их выключили намеренно.
+И то и другое проверяется только после ката.
 
 После проверки namespace удаляется вместе с временным PV и копией.
 
