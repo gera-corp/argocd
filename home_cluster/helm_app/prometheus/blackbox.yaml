@@ -23,6 +23,22 @@ spec:
     helm:
       skipCrds: false
       valuesObject:
+        config:
+          modules:
+            # Vault (raft nodes on :8300) returns 200 on the active node and 429 on
+            # standbys, so the default http_2xx module would report two of three
+            # nodes down forever. Our internal CA is not trusted by the monitoring
+            # stack and cert verification is disabled by design for this cluster,
+            # so skip verification here too - we only need probe_ssl_earliest_cert_expiry
+            # for expiry alerting, not chain validation.
+            vault_health:
+              prober: http
+              timeout: 5s
+              http:
+                valid_status_codes: [200, 429]
+                preferred_ip_protocol: "ip4"
+                tls_config:
+                  insecure_skip_verify: true
         serviceMonitor:
           enabled: true
           targets:
@@ -38,6 +54,19 @@ spec:
             - name: cloud-biostal
               url: https://cloud.biostal.ru
               hostname: cloud.biostal.ru
+            # Vault raft cluster TLS cert expiry (see alerts/vault-tls-cert-expiry.yaml).
+            # NOTE: port 8300 does not exist on these nodes yet - it only appears
+            # after the TLS-enabling image rebuild and node rotation. Do not let
+            # this sync before that rotation or the probes will fail from day one.
+            - name: vault-160
+              url: https://192.168.1.160:8300/v1/sys/health
+              module: vault_health
+            - name: vault-161
+              url: https://192.168.1.161:8300/v1/sys/health
+              module: vault_health
+            - name: vault-162
+              url: https://192.168.1.162:8300/v1/sys/health
+              module: vault_health
             # - name: telegram-api
             #   url: https://api.telegram.org/bot${vault:secret/data/alertmanager#telegram_token}/getMe
             #   hostname: api.telegram.org

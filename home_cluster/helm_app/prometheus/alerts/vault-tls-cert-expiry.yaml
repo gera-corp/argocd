@@ -1,0 +1,35 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: vault-tls-cert-expiry
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    app.kubernetes.io/instance: kube-prometheus-stack
+spec:
+  groups:
+    - name: vault-tls-cert-expiry
+      rules:
+        # 90 days, not the usual 30: remediation here is a certificate reissue
+        # plus an image rebuild plus a rotation of all three raft nodes, i.e.
+        # scheduled work, not a hotfix. Scoped to the vault-* blackbox targets
+        # (see blackbox.yaml) so it doesn't overlap with the generic 14d/3d
+        # BlackboxSslCertificateWillExpireSoon alert in blackbox-exporter.yaml.
+        - alert: VaultTLSCertExpiringSoon
+          expr: (probe_ssl_earliest_cert_expiry{target=~"vault-.*"} - time()) / 86400 < 90
+          for: 1h
+          labels:
+            severity: warning
+            service: infrastructure
+          annotations:
+            summary: "Vault TLS certificate expiring soon (target {{ $labels.target }})"
+            description: >-
+              The TLS certificate served by the Vault raft node at
+              {{ $labels.target }} expires in less than 90 days
+              ({{ $value | humanize }} days remaining). This does not break
+              Vault traffic (certificate verification is disabled cluster-wide
+              by design), but it does break retry_join: once the certificate
+              has expired, no node can be added to or rejoin the raft cluster,
+              because retry_join always verifies the certificate and has no
+              skip-verification option. Plan a certificate reissue, image
+              rebuild, and rotation of all three nodes well ahead of expiry.
