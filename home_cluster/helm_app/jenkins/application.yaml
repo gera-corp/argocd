@@ -51,7 +51,7 @@ spec:
           image:
             registry: docker.io
             repository: jenkins/jenkins
-            tag: 2.568.3-lts-jdk25
+            tagLabel: jdk25
             pullPolicy: IfNotPresent
           testEnabled: false
           podSecurityContextOverride:
