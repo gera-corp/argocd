@@ -213,6 +213,30 @@ spec:
                           path: secret/jenkins/credentials/jenkins-workers
                           scope: GLOBAL
                           vaultKey: token
+                      # Транспортный TLS кластера Vault. Материал выпускает
+                      # offline-корень из HOME_LAB/CA — Vault здесь только
+                      # хранилище, не удостоверяющий центр: сертификат для его
+                      # собственного listener'а не должен зависеть от того, что
+                      # Vault жив. Ключи ca/crt/key кладутся туда вручную после
+                      # выпуска; id совпадают с теми, что ждёт packer.groovy.
+                      - vaultFileCredentialImpl:
+                          engineVersion: 2
+                          id: vault_tls_ca
+                          path: secret/jenkins/credentials/vault_tls
+                          scope: GLOBAL
+                          vaultKey: ca
+                      - vaultFileCredentialImpl:
+                          engineVersion: 2
+                          id: vault_tls_crt
+                          path: secret/jenkins/credentials/vault_tls
+                          scope: GLOBAL
+                          vaultKey: crt
+                      - vaultFileCredentialImpl:
+                          engineVersion: 2
+                          id: vault_tls_key
+                          path: secret/jenkins/credentials/vault_tls
+                          scope: GLOBAL
+                          vaultKey: key
                       - vaultKubernetesCredential:
                           id: vault_auth
                           mountPath: talos
