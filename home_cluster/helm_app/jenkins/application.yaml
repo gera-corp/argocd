@@ -219,19 +219,24 @@ spec:
                       # собственного listener'а не должен зависеть от того, что
                       # Vault жив. Ключи ca/crt/key кладутся туда вручную после
                       # выпуска; id совпадают с теми, что ждёт packer.groovy.
-                      - vaultFileCredentialImpl:
+                      #
+                      # Тип именно String, а не File: vaultFileCredentialImpl в
+                      # версии плагина 384.vda игнорирует vaultKey и пишет в файл
+                      # весь секрет как JSON. Vault на это отвечает "decoded PEM
+                      # is blank" и не стартует. Файлы раскладывает джоба.
+                      - vaultStringCredentialImpl:
                           engineVersion: 2
                           id: vault_tls_ca
                           path: secret/jenkins/credentials/vault_tls
                           scope: GLOBAL
                           vaultKey: ca
-                      - vaultFileCredentialImpl:
+                      - vaultStringCredentialImpl:
                           engineVersion: 2
                           id: vault_tls_crt
                           path: secret/jenkins/credentials/vault_tls
                           scope: GLOBAL
                           vaultKey: crt
-                      - vaultFileCredentialImpl:
+                      - vaultStringCredentialImpl:
                           engineVersion: 2
                           id: vault_tls_key
                           path: secret/jenkins/credentials/vault_tls
