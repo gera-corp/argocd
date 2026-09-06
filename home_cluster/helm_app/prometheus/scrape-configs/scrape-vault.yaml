@@ -7,7 +7,13 @@ metadata:
     prometheus: vault
     release: prom
 spec:
-  scheme: HTTP
+  # Ноды слушают только TLS с сертификатом внутреннего корня home.local,
+  # которого нет в доверенных у Prometheus. Проверку не включаем осознанно:
+  # по всему этому пути она выключена, чтобы просрочка сертификата не рвала
+  # то, чем его же и чинят.
+  scheme: HTTPS
+  tlsConfig:
+    insecureSkipVerify: true
   metricsPath: /v1/sys/metrics
   staticConfigs:
     - labels:
