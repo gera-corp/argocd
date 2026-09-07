@@ -28,6 +28,7 @@ spec:
               apk add --no-cache curl jq;
               export VAULT_ADDR="https://vault-cluster.local.geracorp.work";
               export VAULT_ADDR=$(vault read sys/leader --format=json | jq -r .data.leader_address);
+              export VAULT_SKIP_VERIFY=true;
               export VAULT_TOKEN=$(vault write auth/approle/login role_id=$VAULT_APPROLE_ROLE_ID secret_id=$VAULT_APPROLE_SECRET_ID -format=json | jq -r .auth.client_token);
               vault operator raft snapshot save /share/vault-raft.snap;
             env:
