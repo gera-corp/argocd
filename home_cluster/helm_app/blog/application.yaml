@@ -1,0 +1,64 @@
+# Blog deployed from the Helm chart in gera-corp-org/blog-me.
+# The chart is sourced from the repo's master branch; CI pushes versioned images
+# (ghcr.io/gera-corp-org/blog-me:<version>) on tag push, and image.tag: ""
+# falls back to Chart.yaml appVersion.
+#
+# TLS: cert-manager issues a cert for geracorp.org via DNS-01 Cloudflare
+# (letsencrypt-cloud-production issuer). The wildcard *.geracorp.org does NOT
+# cover the apex domain, so a separate cert is needed — the issuer annotation
+# triggers it automatically.
+#
+# Prune is on: if the Application is deleted, its resources are cleaned up.
+# The PVC survives (ReclaimPolicy=Delete on nfs-csi, but the PVC itself is
+# removed by prune — data is lost). Keep backups running.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: blog
+spec:
+  destination:
+    name: in-cluster
+    namespace: blog
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  source:
+    repoURL: https://github.com/gera-corp-org/blog-me.git
+    path: deploy/helm/blog
+    targetRevision: master
+    helm:
+      valuesObject:
+        image:
+          repository: ghcr.io/gera-corp-org/blog-me
+          tag: ""
+          pullPolicy: IfNotPresent
+
+        ingress:
+          enabled: true
+          className: traefik
+          host: geracorp.org
+          annotations:
+            nginx.ingress.kubernetes.io/proxy-body-size: "12m"
+            cert-manager.io/cluster-issuer: letsencrypt-cloud-production
+          tls:
+            enabled: true
+            secretName: blog-tls
+
+        persistence:
+          storageClassName: nfs-csi
+
+        config:
+          SITE_URL: "https://geracorp.org"
+          SITE_TITLE: "Нейрослоп blog"
+          SITE_DESCRIPTION: "Личный блог о коде, devops и Ai"
+          SITE_AUTHOR: "gera"
+          TRUST_PROXY: "loopback,uniquelocal"
+          COOKIE_SECURE: "true"
+
+        secrets:
+          existingSecret: blog-secrets

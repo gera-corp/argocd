@@ -1,0 +1,6 @@
+# The secret lands here before the Application has created the namespace itself,
+# so it is declared rather than left to CreateNamespace.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: blog
